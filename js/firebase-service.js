@@ -10,6 +10,15 @@ const STORAGE_KEYS = {
   FIREBASE_CONFIG: 'relas_firebase_config_v1'
 };
 
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDttuIa4-KHAGbHUZ1_lM2Hr5Siq0XTBPU",
+  authDomain: "relas-couture.firebaseapp.com",
+  projectId: "relas-couture",
+  storageBucket: "relas-couture.firebasestorage.app",
+  messagingSenderId: "52523757770",
+  appId: "1:52523757770:web:54e08cb32cc084b7a08433"
+};
+
 class RelasDataService {
   constructor() {
     this.db = null;
@@ -71,17 +80,18 @@ class RelasDataService {
 
   initFirebaseFromStorage() {
     try {
+      let config = DEFAULT_FIREBASE_CONFIG;
       const savedConfig = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
-      if (savedConfig && window.firebase) {
-        const config = JSON.parse(savedConfig);
-        if (config.apiKey && config.projectId) {
-          if (!firebase.apps.length) {
-            firebase.initializeApp(config);
-          }
-          this.db = firebase.firestore();
-          this.isFirebaseReady = true;
-          console.log("💎 تم الاتصال بنجاح بقاعدة بيانات Firebase Firestore");
+      if (savedConfig) {
+        config = JSON.parse(savedConfig);
+      }
+      if (config && config.apiKey && config.projectId && window.firebase) {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(config);
         }
+        this.db = firebase.firestore();
+        this.isFirebaseReady = true;
+        console.log("💎 تم الاتصال بنجاح بقاعدة بيانات Firebase Firestore:", config.projectId);
       }
     } catch (e) {
       console.warn("تعذر الاتصال بـ Firebase، سيتم استخدام التخزين المحلي السريع.", e);
@@ -305,7 +315,7 @@ class RelasDataService {
 
   getFirebaseConfig() {
     const config = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
-    return config ? JSON.parse(config) : null;
+    return config ? JSON.parse(config) : DEFAULT_FIREBASE_CONFIG;
   }
 
   saveFirebaseConfig(config) {
