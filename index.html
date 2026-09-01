@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ريلاس لفساتين السهرة والزفاف | Relas Couture - الرياض</title>
+  <meta name="description" content="دار ريلاس للأزياء الراقية - تشكيلات حصرية من فساتين الزفاف والسهرة وتفصيل الهوت كوتور بالطلب مع استوديو أخذ القياسات الذكي.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: {
+              50: '#fdfbf7',
+              100: '#f9f4ea',
+              200: '#f1e5cf',
+              300: '#e5cfac',
+              400: '#d5b382',
+              500: '#c5a880',
+              600: '#b08b57',
+              700: '#926e42',
+              800: '#775737',
+              900: '#62472f',
+            },
+            ivory: '#FAF8F5',
+            noir: '#141414',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Firebase App & Firestore SDKs (v8 compat for easy CDN loading) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#FAF8F5] text-[#141414] antialiased flex flex-col min-h-screen">
+
+  <!-- 1. شريط الإعلانات العلوي الفاخر (Announcement Bar) -->
+  <div class="bg-black text-amber-200 text-xs py-2.5 px-4 text-center tracking-wider border-b border-amber-900/40 relative z-30">
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="hidden md:flex items-center gap-4 text-gray-400">
+        <span>📍 الرياض، المملكة العربية السعودية</span>
+        <span>🚚 شحن سريع لكافة المدن</span>
+      </div>
+      <p id="announcementBannerText" class="mx-auto font-medium">
+        ✨ استمتعي بتجربة التفصيل الحصري واستوديو القياسات الذكي مع ريلاس | توصيل لجميع مدن المملكة
+      </p>
+      <div class="hidden md:flex items-center gap-3">
+        <a href="admin.html" class="text-amber-300 hover:underline text-[11px]">لوحة التحكم ⚙️</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. الترويسة الرئيسية (Luxury Header & Navigation) -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E7DFD5] transition-all duration-300">
+    <div class="container mx-auto px-4 lg:px-8 py-3.5 flex items-center justify-between">
+      
+      <!-- زر القائمة للجوال -->
+      <button id="mobileMenuToggle" class="lg:hidden p-2 text-neutral-800 focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <!-- شعار ريلاس للأزياء الفاخر (Brand Logo & Monogram) -->
+      <div class="text-center">
+        <a href="index.html" class="inline-block group">
+          <div class="flex flex-col items-center">
+            <span class="font-royal text-2xl md:text-3xl font-bold tracking-[0.2em] text-neutral-900 group-hover:text-amber-700 transition uppercase">
+              RELAS
+            </span>
+            <span class="font-traditional text-sm md:text-base font-bold text-amber-800 -mt-1 tracking-wider">
+              ريلاس للأزياء الراقية
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- القائمة الرئيسية للحواسيب (Desktop Navigation) -->
+      <nav class="hidden lg:flex items-center gap-8 text-sm font-semibold text-neutral-800">
+        <a href="index.html" class="text-amber-700 hover:text-amber-800 border-b-2 border-amber-600 pb-1">الرئيسية</a>
+        <a href="#collections" class="hover:text-amber-700 transition pb-1">فساتين الزفاف</a>
+        <a href="#collections" class="hover:text-amber-700 transition pb-1">فساتين السهرة</a>
+        <a href="#collections" class="hover:text-amber-700 transition pb-1">الهوت كوتور</a>
+        <a href="measurements.html" class="text-amber-900 bg-amber-100/70 hover:bg-amber-200 px-3.5 py-1.5 rounded-full transition flex items-center gap-1.5 font-bold shadow-sm">
+          <span>استوديو القياسات بالطلب</span> 📐✨
+        </a>
+        <a href="#atelier" class="hover:text-amber-700 transition pb-1">عن ريلاس</a>
+      </nav>
+
+      <!-- إجراءات سريعة (WhatsApp & Admin Shortcut) -->
+      <div class="flex items-center gap-3">
+        <a href="measurements.html" class="hidden sm:inline-flex btn-luxury-primary text-xs py-2 px-4">
+          <span>أخذ مقاسكِ</span> 📏
+        </a>
+        <a id="headerWaBtn" href="https://wa.me/966551234567" target="_blank" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full transition" title="مراسلة واتساب">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- درج القائمة للجوال (Mobile Drawer) -->
+    <div id="mobileMenuDrawer" class="hidden lg:hidden bg-white border-b border-gray-200 px-6 py-5 space-y-4">
+      <a href="index.html" class="block font-bold text-amber-700">الرئيسية</a>
+      <a href="#collections" class="block text-gray-800">تشكيلة فساتين الزفاف</a>
+      <a href="#collections" class="block text-gray-800">فساتين السهرة والملكة</a>
+      <a href="measurements.html" class="block font-bold text-amber-900 bg-amber-50 p-3 rounded-lg border border-amber-200">
+        📐 استوديو أخذ القياسات بالطلب
+      </a>
+      <a href="#atelier" class="block text-gray-800">دار ريلاس للأزياء</a>
+      <a href="admin.html" class="block text-gray-500 text-xs pt-2 border-t">لوحة التحكم ⚙️</a>
+    </div>
+  </header>
+
+  <!-- 3. البانر الرئيسي الفاخر (Haute Couture Editorial Hero) -->
+  <section class="relative bg-neutral-950 text-white overflow-hidden py-24 md:py-36 min-h-[580px] flex items-center">
+    <!-- خلفية الصورة الفاخرة مع تدرج لوني -->
+    <div class="absolute inset-0 z-0 opacity-40">
+      <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=85" alt="Relas Bridal Couture" class="w-full h-full object-cover object-center scale-105 transform animate-pulse duration-1000" style="animation-duration: 8s;">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10"></div>
+
+    <div class="container mx-auto px-4 lg:px-8 relative z-20">
+      <div class="max-w-2xl space-y-6">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-amber-400/40 bg-amber-950/40 backdrop-blur-md">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+          <span class="text-xs font-semibold tracking-widest text-amber-300 uppercase">مجموعة الهوت كوتور 2026</span>
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
+          لكونكِ أنثى راقية...<br>
+          <span class="gold-gradient-text">تشرفنا في تصميم قطعتكِ الخاصة</span>
+        </h1>
+
+        <p class="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed font-light">
+          في دار <strong class="text-amber-200 font-bold">ريلاس للأزياء</strong>، نجمع بين فخامة التصاميم العالمية لفساتين السهرة والزفاف وأدق تفاصيل التفصيل الحصري حسب مقاساتكِ الخاصة مع استوديو القياسات الذكي.
+        </p>
+
+        <div class="pt-4 flex flex-wrap items-center gap-4">
+          <a href="measurements.html" class="btn-luxury-gold py-3.5 px-8 text-sm md:text-base font-bold shadow-xl">
+            <span>ابدئي أخذ قياساتكِ التفاعلية 📏</span>
+          </a>
+          <a href="#collections" class="btn-luxury-outline text-white border-white/60 hover:bg-white hover:text-black py-3.5 px-8 text-sm md:text-base">
+            استكشفي الكاتالوج ✨
+          </a>
+        </div>
+
+        <!-- مميزات سريعة -->
+        <div class="pt-6 grid grid-cols-3 gap-4 border-t border-white/10 text-xs text-gray-300">
+          <div>
+            <span class="text-amber-400 font-bold text-base block font-serif">100%</span>
+            <span>تفصيل خاص بمقاسكِ</span>
+          </div>
+          <div>
+            <span class="text-amber-400 font-bold text-base block font-serif">Haute Couture</span>
+            <span>أقمشة أوروبية فاخرة</span>
+          </div>
+          <div>
+            <span class="text-amber-400 font-bold text-base block font-serif">Tamara & Tabby</span>
+            <span>تقسيط ميسر 4 دفعات</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. شريط المزايا الفاخرة (Features Banner) -->
+  <section class="py-8 bg-white border-b border-[#E7DFD5]">
+    <div class="container mx-auto px-4 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center md:text-right">
+        <div class="flex items-center gap-4 justify-center md:justify-start">
+          <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-xl flex-shrink-0">
+            📐
+          </div>
+          <div>
+            <h4 class="font-bold text-sm text-neutral-900">استوديو القياسات الذكي</h4>
+            <p class="text-xs text-gray-500">13 نقطة قياس دقيقة على مانيكان تفاعلي</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 justify-center md:justify-start">
+          <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-xl flex-shrink-0">
+            🧵
+          </div>
+          <div>
+            <h4 class="font-bold text-sm text-neutral-900">تطريز يدوي متقن</h4>
+            <p class="text-xs text-gray-500">دانتيل فرنسي وكريستال سواروفسكي</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 justify-center md:justify-start">
+          <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-xl flex-shrink-0">
+            💬
+          </div>
+          <div>
+            <h4 class="font-bold text-sm text-neutral-900">استشارة مجانية فورية</h4>
+            <p class="text-xs text-gray-500">مراسلة مباشرة مع مصممة الأزياء عبر الواتساب</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 justify-center md:justify-start">
+          <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-xl flex-shrink-0">
+            🚚
+          </div>
+          <div>
+            <h4 class="font-bold text-sm text-neutral-900">توصيل فاخر وآمن</h4>
+            <p class="text-xs text-gray-500">شحن لكافة مناطق المملكة ودول الخليج</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. قسم التشكيلات والفساتين (Rosa Clara Style Catalog) -->
+  <section id="collections" class="py-16 md:py-24">
+    <div class="container mx-auto px-4 lg:px-8">
+      
+      <!-- ترويسة القسم -->
+      <div class="text-center max-w-xl mx-auto mb-12 space-y-3">
+        <span class="text-xs font-bold uppercase tracking-[0.25em] text-amber-800">COLLECTIONS 2026</span>
+        <h2 class="text-2xl sm:text-4xl font-black text-neutral-900">تشكيلة فساتين السهرة والزفاف</h2>
+        <p class="text-sm text-gray-600 font-light">
+          اختاري تصميمك المفضل أو اطلبي تفصيله بدقة متناهية وفق مقاسات جسمكِ من خلال استوديو القياسات.
+        </p>
+      </div>
+
+      <!-- شريط الفلاتر والترتيب (Filter & Sort Controls) -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 pb-4 border-b border-gray-200">
+        <!-- أزرار التصنيفات -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button class="category-filter-btn px-5 py-2 rounded text-xs md:text-sm font-bold bg-black text-white transition shadow-sm" data-category="all">
+            جميع التشكيلات
+          </button>
+          <button class="category-filter-btn px-5 py-2 rounded text-xs md:text-sm font-semibold bg-transparent text-gray-700 hover:bg-gray-100 transition" data-category="bridal">
+            فساتين زفاف 👰
+          </button>
+          <button class="category-filter-btn px-5 py-2 rounded text-xs md:text-sm font-semibold bg-transparent text-gray-700 hover:bg-gray-100 transition" data-category="evening">
+            فساتين سهرة ✨
+          </button>
+          <button class="category-filter-btn px-5 py-2 rounded text-xs md:text-sm font-semibold bg-transparent text-gray-700 hover:bg-gray-100 transition" data-category="reception">
+            فساتين خطوبة وملكة 👑
+          </button>
+        </div>
+
+        <!-- قائمة الترتيب -->
+        <div class="flex items-center gap-2 text-xs">
+          <label for="sortSelect" class="text-gray-500 font-semibold">ترتيب حسب:</label>
+          <select id="sortSelect" class="bg-white border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-amber-600 text-gray-800 font-medium">
+            <option value="default">المقترحات والأكثر طلباً</option>
+            <option value="price-low">السعر: من الأقل للأعلى</option>
+            <option value="price-high">السعر: من الأعلى للأقل</option>
+            <option value="newest">الأحدث وصولاً</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- شبكة الفساتين (Dresses Grid) -->
+      <div id="dressesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- يتم التحميل ديناميكياً عبر app.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. تسليط الضوء على استوديو القياسات بالطلب (Custom Measurement Spotlight) -->
+  <section class="py-16 bg-gradient-to-b from-[#FAF8F5] via-[#F4EEE5] to-[#FAF8F5] border-y border-[#E7DFD5] relative overflow-hidden">
+    <div class="container mx-auto px-4 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        
+        <!-- تفاصيل الميزة والبطاقة -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-bold">
+            <span>✨ الميزة الحصرية في دار ريلاس</span>
+          </div>
+
+          <h2 class="text-2xl sm:text-4xl font-black text-neutral-900 leading-tight">
+            استوديو أخذ القياسات التفاعلي بالطلب<br>
+            <span class="gold-gradient-text">دقة متناهية تحاكي كبرى دور الأزياء العالمية</span>
+          </h2>
+
+          <p class="text-sm sm:text-base text-gray-700 leading-relaxed">
+            لا داعي للقلق بشأن مقاس فستانكِ بعد اليوم. ابتكرنا في ريلاس للأزياء استوديو تفاعلي ذكي مدعوماً بمانيكان مرقم يوضح لكِ بالفيديو والصور التوضيحية كيفية أخذ كل قياس من القياسات الـ 13 بدقة متناهية (الطول، محيط الصدر، الخصر، الورك، الزند، دوران المعصم...) مع توليد بطاقة قياسات مخصصة لمشغل الخياطة.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs md:text-sm font-semibold text-gray-800">
+            <div class="flex items-center gap-2 p-3 bg-white/80 rounded border border-amber-200">
+              <span class="text-amber-600 font-bold">✓</span>
+              <span>13 نقطة قياس معتمدة من الخياطين المحترفين</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-white/80 rounded border border-amber-200">
+              <span class="text-amber-600 font-bold">✓</span>
+              <span>مانيكان تفاعلي يحدد مكان القياس فوراً</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-white/80 rounded border border-amber-200">
+              <span class="text-amber-600 font-bold">✓</span>
+              <span>حفظ مباشر ومزامنة مع قاعدة بيانات ريلاس</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-white/80 rounded border border-amber-200">
+              <span class="text-amber-600 font-bold">✓</span>
+              <span>إرسال فوري بضغطة زر إلى واتساب المصممة</span>
+            </div>
+          </div>
+
+          <div class="pt-2 flex flex-wrap gap-4">
+            <a href="measurements.html" class="btn-luxury-gold py-3.5 px-8 text-sm md:text-base font-bold shadow-lg">
+              <span>افتحي استوديو القياسات التفاعلي الآن 📐</span>
+            </a>
+            <a href="measurements.html#previewCardBtn" class="btn-luxury-outline text-xs md:text-sm py-3 px-6">
+              معاينة كرت القياسات الكلاسيكي 🖨️
+            </a>
+          </div>
+        </div>
+
+        <!-- بطاقة المعاينة البصرية (تحاكي الكرت المرفق) -->
+        <div class="lg:col-span-5">
+          <div class="vintage-tailor-card transform hover:scale-[1.02] transition-transform duration-300 shadow-2xl">
+            <div class="tailor-header-hanger">
+              <h3 class="text-2xl font-black font-traditional text-neutral-950">ريلاس للازياء</h3>
+              <p class="text-xs font-bold text-amber-950 font-traditional">بطاقة القياسات الخاصة بالزبونة</p>
+            </div>
+            
+            <div class="space-y-1.5 text-xs font-bold font-traditional text-neutral-900 my-3">
+              <div class="flex justify-between border-b border-dashed border-amber-900/40 pb-1">
+                <span>اسم الزبونة:</span>
+                <span class="text-neutral-950">سارة المنصور</span>
+              </div>
+              <div class="flex justify-between border-b border-dashed border-amber-900/40 pb-1">
+                <span>نوع الفستان:</span>
+                <span class="text-neutral-950">فستان زفاف ملكي خاص</span>
+              </div>
+              <div class="flex justify-between border-b border-dashed border-amber-900/40 pb-1">
+                <span>الطول الكلي:</span>
+                <span>146 سم</span>
+              </div>
+              <div class="flex justify-between border-b border-dashed border-amber-900/40 pb-1">
+                <span>محيط الصدر / الخصر:</span>
+                <span>88 سم / 66 سم</span>
+              </div>
+            </div>
+
+            <div class="tailor-quote-box text-center py-2 px-3 text-xs">
+              <p class="font-traditional font-black">
+                لكونكِ انثى راقيه تشرفنا في تصميم قطعتكِ الخاصه ... ريلاس للازياء.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. نبذة عن دار ريلاس للأزياء (About Atelier) -->
+  <section id="atelier" class="py-16 md:py-24 bg-white">
+    <div class="container mx-auto px-4 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div class="relative">
+          <img src="https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?auto=format&fit=crop&w=1000&q=85" alt="Relas Atelier" class="rounded-lg shadow-xl w-full object-cover h-[450px]" />
+          <div class="absolute -bottom-6 -left-6 bg-black text-amber-200 p-6 rounded-lg hidden sm:block shadow-2xl border border-amber-500/30">
+            <span class="font-serif text-3xl font-bold block">10+</span>
+            <span class="text-xs text-gray-300 font-sans">سنوات من التميز في عالم الهوت كوتور</span>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <span class="text-xs font-bold uppercase tracking-[0.2em] text-amber-800">ATELIER RELAS</span>
+          <h2 class="text-3xl sm:text-4xl font-black text-neutral-900 leading-tight">
+            قصة شغف في حياكة أجمل اللحظات
+          </h2>
+          <p class="text-sm text-gray-600 leading-relaxed font-light">
+            انطلقت دار <strong>ريلاس للأزياء</strong> لتكون الملاذ الأول لكل عروس وسيدة تبحث عن التميز والفرادة. نستورد أرقى الأقمشة من دور النسيج الفرنسية والإيطالية، ونعتمد خياطة الكوتور الدقيقة التي ترسم تفاصيل الجسم بأعلى معايير الرقي.
+          </p>
+          <p class="text-sm text-gray-600 leading-relaxed font-light">
+            فريقنا من المصممات وخبيرات التفصيل متواجد دائماً لمساعدتكِ في اختيار القصة التي تلائم قوامكِ ولون بشرتكِ ومناسبتكِ السعيدة.
+          </p>
+
+          <div class="pt-4 flex items-center gap-4">
+            <a href="measurements.html" class="btn-luxury-primary text-xs py-3 px-6">
+              <span>احجزي تفصيلكِ الخاص</span> ✂️
+            </a>
+            <a id="atelierWhatsAppBtn" href="https://wa.me/966551234567" target="_blank" class="text-emerald-700 hover:text-emerald-800 font-bold text-xs flex items-center gap-1.5">
+              <span>مراسلة المصممة عبر الواتساب</span> 💬
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. الفوتر الفاخر (Luxury Footer) -->
+  <footer class="bg-neutral-950 text-gray-400 text-xs py-14 border-t border-neutral-800 mt-auto">
+    <div class="container mx-auto px-4 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        
+        <!-- نبذة واللوقو -->
+        <div class="space-y-3">
+          <span class="font-royal text-2xl font-bold tracking-[0.2em] text-white block uppercase">RELAS</span>
+          <span class="font-traditional text-base text-amber-400 font-bold block">ريلاس لفساتين السهرة والزفاف</span>
+          <p class="text-gray-400 leading-relaxed text-xs">
+            لكونكِ أنثى راقية... تشرفنا في تصميم وتفصيل قطعتكِ الخاصة بأرقى معايير الهوت كوتور العالمية.
+          </p>
+        </div>
+
+        <!-- روابط سريعة -->
+        <div class="space-y-2">
+          <h4 class="text-white font-bold text-sm mb-3">التشكيلات والخدمات</h4>
+          <ul class="space-y-2">
+            <li><a href="#collections" class="hover:text-amber-300 transition">فساتين الزفاف الملكية</a></li>
+            <li><a href="#collections" class="hover:text-amber-300 transition">فساتين السهرة والكوتور</a></li>
+            <li><a href="#collections" class="hover:text-amber-300 transition">فساتين الخطوبة والملكة</a></li>
+            <li><a href="measurements.html" class="text-amber-300 font-bold hover:underline">استوديو أخذ القياسات 📐</a></li>
+          </ul>
+        </div>
+
+        <!-- التواصل والعنوان -->
+        <div class="space-y-2">
+          <h4 class="text-white font-bold text-sm mb-3">التواصل والموقع</h4>
+          <p class="flex items-center gap-2">📍 <span class="store-city-display">الرياض، المملكة العربية السعودية</span></p>
+          <p class="flex items-center gap-2">📱 هاتف / واتساب: <span class="store-phone-display font-mono" dir="ltr">+966 55 123 4567</span></p>
+          <p class="flex items-center gap-2">✉️ بريد: <span class="store-email-display">contact@relas-couture.com</span></p>
+        </div>
+
+        <!-- أوقات العمل والدعم -->
+        <div class="space-y-3">
+          <h4 class="text-white font-bold text-sm mb-3">أوقات العمل والبروفة</h4>
+          <p>السبت - الخميس: 10:00 ص - 10:30 م</p>
+          <p>الجمعة: 4:00 م - 10:30 م</p>
+          <div class="pt-2">
+            <a href="admin.html" class="inline-block text-[11px] text-amber-400/80 hover:text-amber-300 border border-amber-900/60 px-3 py-1 rounded">
+              لوحة التحكم والإدارة ⚙️
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pt-8 border-t border-neutral-800 text-center flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-500">
+        <p>© 2026 دار ريلاس للأزياء (Relas Couture). جميع الحقوق محفوظة.</p>
+        <p>مصمم بنمط روزا كلارا الفاخر لفساتين السهرة والزفاف.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- زر الواتساب العائم الدائم الفاخر (Floating WhatsApp) -->
+  <a id="floatingWhatsAppBtn" href="https://wa.me/966551234567" target="_blank" class="floating-whatsapp" title="تحدثي مع مصممة ريلاس على الواتساب">
+    <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24">
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+    </svg>
+  </a>
+
+  <!-- نافذة المعاينة السريعة للفستان (Quick View Modal) -->
+  <div id="quickViewModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative p-6 md:p-8 animate-in fade-in zoom-in duration-200">
+      <button id="closeQuickViewBtn" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center font-bold text-lg transition z-20">
+        ✕
+      </button>
+      <div id="quickViewContent">
+        <!-- محتوى المعاينة السريعة يتم توليده عبر app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/data-initial.js"></script>
+  <script src="js/firebase-service.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

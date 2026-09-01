@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استوديو أخذ القياسات التفاعلي بالطلب | ريلاس للأزياء - Relas Couture</title>
+  <meta name="description" content="استوديو تفاعلي ذكي لأخذ القياسات الـ 13 بدقة متناهية لفساتين السهرة والزفاف في دار ريلاس للأزياء مع مانيكان تفاعلي وبطاقة مشغل كلاسيكية.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: {
+              500: '#c5a880',
+              600: '#b08b57',
+              700: '#926e42',
+            },
+            ivory: '#FAF8F5',
+            noir: '#141414',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Firebase App & Firestore SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#FAF8F5] text-[#141414] antialiased flex flex-col min-h-screen">
+
+  <!-- 1. شريط علوي وإعلان -->
+  <div class="bg-black text-amber-200 text-xs py-2 px-4 text-center tracking-wider border-b border-amber-900/40">
+    <span>✨ استوديو القياسات الذكي لدار ريلاس للأزياء - دقة متناهية تحاكي كبرى دور الكوتور العالمية</span>
+  </div>
+
+  <!-- 2. الترويسة الرئيسية -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E7DFD5]">
+    <div class="container mx-auto px-4 lg:px-8 py-3.5 flex items-center justify-between">
+      
+      <!-- شعار ريلاس -->
+      <a href="index.html" class="flex flex-col items-start">
+        <span class="font-royal text-2xl font-bold tracking-[0.2em] text-neutral-900 uppercase">RELAS</span>
+        <span class="font-traditional text-xs font-bold text-amber-800 -mt-1">ريلاس للأزياء الراقية</span>
+      </a>
+
+      <!-- روابط سريعة -->
+      <div class="flex items-center gap-4 text-xs md:text-sm font-semibold">
+        <a href="index.html" class="hover:text-amber-700 transition">العودة للرئيسية ↩️</a>
+        <a href="index.html#collections" class="hidden sm:inline-block hover:text-amber-700 transition">الكاتالوج 👗</a>
+        <button id="previewCardBtn" class="btn-luxury-gold py-1.5 px-3.5 text-xs">
+          معاينة كرت القياسات 🖨️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. المحتوى الرئيسي لاستوديو القياسات -->
+  <main class="flex-grow py-8 md:py-12">
+    <div class="container mx-auto px-4 lg:px-8">
+      
+      <!-- ترويسة الصفحة الترحيبية -->
+      <div class="text-center max-w-2xl mx-auto mb-10 space-y-2">
+        <span class="text-xs font-bold uppercase tracking-[0.25em] text-amber-800">CUSTOM TAILORING STUDIO</span>
+        <h1 class="text-2xl sm:text-4xl font-black text-neutral-900">استوديو أخذ القياسات التفاعلي</h1>
+        <p class="text-xs sm:text-sm text-gray-600">
+          انقري على أي نقطة مرقمة (1 إلى 13) على المانيكان لمعرفة كيفية أخذ القياس بالسنتيمتر، وسيقوم النظام بتحديد الحقل المناسب تلقائياً.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- الجانب الأيمن / المانيكان التفاعلي الذكي (Interactive Mannequin & Guide) -->
+        <div class="lg:col-span-5 sticky top-24 space-y-4">
+          
+          <div class="mannequin-container p-4 md:p-6 text-center">
+            
+            <div class="flex items-center justify-between mb-3 border-b border-amber-200/50 pb-2">
+              <span class="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                <span>مانيكان القياس التفاعلي</span> 👗
+              </span>
+              <!-- محول الوحدات (CM / Inch) -->
+              <div class="flex items-center bg-gray-200/70 p-0.5 rounded text-xs font-bold">
+                <button type="button" id="unitCmBtn" class="px-2.5 py-1 rounded bg-black text-white transition">سم (cm)</button>
+                <button type="button" id="unitInchBtn" class="px-2.5 py-1 rounded text-gray-700 transition">إنش (inch)</button>
+              </div>
+            </div>
+
+            <!-- رسم المانيكان التفاعلي المتجهي SVG عالي الدقة مع النقاط الـ 13 -->
+            <div class="relative max-w-[340px] mx-auto">
+              <svg class="mannequin-svg" viewBox="0 0 340 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="mannequinBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff"/>
+                    <stop offset="50%" stop-color="#f7f2ea"/>
+                    <stop offset="100%" stop-color="#eddcc6"/>
+                  </linearGradient>
+                  <linearGradient id="goldStrokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#d4af37"/>
+                    <stop offset="100%" stop-color="#9e7d52"/>
+                  </linearGradient>
+                  <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+
+                <!-- الحامل والستاند الخشبي الكلاسيكي -->
+                <line x1="170" y1="520" x2="170" y2="730" stroke="#4a3520" stroke-width="8" stroke-linecap="round"/>
+                <!-- أرجل الحامل الثلاثية -->
+                <path d="M170 710 L100 750 M170 710 L240 750 M170 710 L170 755" stroke="#4a3520" stroke-width="6" stroke-linecap="round"/>
+                <!-- مفتاح ضبط الارتفاع المعدني -->
+                <circle cx="170" cy="560" r="8" fill="#c5a880" stroke="#4a3520" stroke-width="2"/>
+
+                <!-- مجسم المانيكان / الكورسيه المشغول الأنيق -->
+                <!-- الرقبة والياقة -->
+                <path d="M150 70 L190 70 L195 105 L145 105 Z" fill="url(#mannequinBodyGrad)" stroke="#4a3520" stroke-width="2.5"/>
+                
+                <!-- الجذع الرئيسي / فستان المانيكان -->
+                <path d="M145 105 
+                         C120 115, 85 125, 75 145 
+                         C65 175, 75 220, 85 250 
+                         C95 275, 110 295, 115 330 
+                         C120 365, 95 420, 90 450 
+                         C80 505, 120 525, 170 525 
+                         C220 525, 260 505, 250 450 
+                         C245 420, 220 365, 225 330 
+                         C230 295, 245 275, 255 250 
+                         C265 220, 275 175, 265 145 
+                         C255 125, 220 115, 195 105 Z" 
+                      fill="url(#mannequinBodyGrad)" 
+                      stroke="#4a3520" 
+                      stroke-width="3" 
+                      filter="drop-shadow(0 10px 15px rgba(0,0,0,0.08))"/>
+
+                <!-- أشرطة الكورسيه والتطريزات الزخرفية الدقيقة -->
+                <path d="M110 120 C120 180, 125 240, 130 330 C135 400, 130 480, 125 520" stroke="#9e7d52" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <path d="M230 120 C220 180, 215 240, 210 330 C205 400, 210 480, 215 520" stroke="#9e7d52" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <line x1="170" y1="105" x2="170" y2="525" stroke="#9e7d52" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+                <!-- رسم خطوط الذراعين التوضيحية -->
+                <path d="M75 145 C50 180, 45 240, 50 300 C53 330, 60 380, 65 420" stroke="#8b7355" stroke-width="2" stroke-dasharray="4 4"/>
+                <path d="M265 145 C290 180, 295 240, 290 300 C287 330, 280 380, 275 420" stroke="#8b7355" stroke-width="2" stroke-dasharray="4 4"/>
+
+                <!-- ==================== خطوط القياس الإرشادية (Guidelines) ==================== -->
+                <!-- 1. الطول الكلي (من أعلى الكتف إلى الأرض) -->
+                <line class="guideline-path" data-num="1" x1="40" y1="110" x2="40" y2="720" stroke-width="2.5"/>
+                <line class="guideline-path" data-num="1" x1="30" y1="110" x2="145" y2="110"/>
+                <line class="guideline-path" data-num="1" x1="30" y1="720" x2="170" y2="720"/>
+
+                <!-- 2. طول الرقبة -->
+                <line class="guideline-path" data-num="2" x1="170" y1="70" x2="170" y2="105"/>
+
+                <!-- 3. عرض الكتفين -->
+                <line class="guideline-path" data-num="3" x1="75" y1="135" x2="265" y2="135"/>
+
+                <!-- 4. طول بين النهدين (المسافة) -->
+                <line class="guideline-path" data-num="4" x1="135" y1="210" x2="205" y2="210"/>
+
+                <!-- 5. محيط الصدر -->
+                <path class="guideline-path" data-num="5" d="M72 210 Q170 235 268 210 Q170 190 72 210"/>
+
+                <!-- 6. محيط تحت الصدر -->
+                <path class="guideline-path" data-num="6" d="M85 265 Q170 285 255 265 Q170 250 85 265"/>
+
+                <!-- 7. محيط الخصر -->
+                <path class="guideline-path" data-num="7" d="M115 330 Q170 348 225 330 Q170 315 115 330"/>
+
+                <!-- 8. طول قصة الصدر (من الكتف للصدر/الخصر) -->
+                <line class="guideline-path" data-num="8" x1="145" y1="110" x2="145" y2="330"/>
+
+                <!-- 9. محيط الورك -->
+                <path class="guideline-path" data-num="9" d="M90 440 Q170 470 250 440 Q170 420 90 440"/>
+
+                <!-- 10. ارتفاع الورك -->
+                <line class="guideline-path" data-num="10" x1="230" y1="330" x2="250" y2="440"/>
+
+                <!-- 11. طول الذراع -->
+                <path class="guideline-path" data-num="11" d="M265 145 L290 290 L275 420"/>
+
+                <!-- 12. عرض الزندة (محيط أعلى الذراع) -->
+                <ellipse class="guideline-path" data-num="12" cx="285" cy="220" rx="14" ry="7"/>
+
+                <!-- 13. دوران المعصم -->
+                <ellipse class="guideline-path" data-num="13" cx="275" cy="420" rx="12" ry="6"/>
+
+                <!-- ==================== النقاط الـ 13 التفاعلية المرقمة (Interactive Hotspots) ==================== -->
+                
+                <!-- 1. الطول الكلي -->
+                <g class="hotspot-node" data-num="1">
+                  <circle class="hotspot-pulse" cx="40" cy="415" r="14"/>
+                  <circle class="hotspot-circle" cx="40" cy="415" r="13"/>
+                  <text class="hotspot-text" x="40" y="415">1</text>
+                </g>
+
+                <!-- 2. طول الرقبة -->
+                <g class="hotspot-node" data-num="2">
+                  <circle class="hotspot-pulse" cx="170" cy="85" r="14"/>
+                  <circle class="hotspot-circle" cx="170" cy="85" r="13"/>
+                  <text class="hotspot-text" x="170" y="85">2</text>
+                </g>
+
+                <!-- 3. عرض الكتفين -->
+                <g class="hotspot-node" data-num="3">
+                  <circle class="hotspot-pulse" cx="170" cy="135" r="14"/>
+                  <circle class="hotspot-circle" cx="170" cy="135" r="13"/>
+                  <text class="hotspot-text" x="170" y="135">3</text>
+                </g>
+
+                <!-- 4. المسافة بين الصدرين -->
+                <g class="hotspot-node" data-num="4">
+                  <circle class="hotspot-pulse" cx="170" cy="210" r="14"/>
+                  <circle class="hotspot-circle" cx="170" cy="210" r="13"/>
+                  <text class="hotspot-text" x="170" y="210">4</text>
+                </g>
+
+                <!-- 5. محيط الصدر -->
+                <g class="hotspot-node" data-num="5">
+                  <circle class="hotspot-pulse" cx="72" cy="210" r="14"/>
+                  <circle class="hotspot-circle" cx="72" cy="210" r="13"/>
+                  <text class="hotspot-text" x="72" y="210">5</text>
+                </g>
+
+                <!-- 6. محيط تحت الصدر -->
+                <g class="hotspot-node" data-num="6">
+                  <circle class="hotspot-pulse" cx="85" cy="265" r="14"/>
+                  <circle class="hotspot-circle" cx="85" cy="265" r="13"/>
+                  <text class="hotspot-text" x="85" y="265">6</text>
+                </g>
+
+                <!-- 7. محيط الخصر -->
+                <g class="hotspot-node" data-num="7">
+                  <circle class="hotspot-pulse" cx="115" cy="330" r="14"/>
+                  <circle class="hotspot-circle" cx="115" cy="330" r="13"/>
+                  <text class="hotspot-text" x="115" y="330">7</text>
+                </g>
+
+                <!-- 8. طول قصة الصدر -->
+                <g class="hotspot-node" data-num="8">
+                  <circle class="hotspot-pulse" cx="145" cy="280" r="14"/>
+                  <circle class="hotspot-circle" cx="145" cy="280" r="13"/>
+                  <text class="hotspot-text" x="145" y="280">8</text>
+                </g>
+
+                <!-- 9. محيط الورك -->
+                <g class="hotspot-node" data-num="9">
+                  <circle class="hotspot-pulse" cx="90" cy="440" r="14"/>
+                  <circle class="hotspot-circle" cx="90" cy="440" r="13"/>
+                  <text class="hotspot-text" x="90" y="440">9</text>
+                </g>
+
+                <!-- 10. ارتفاع الورك -->
+                <g class="hotspot-node" data-num="10">
+                  <circle class="hotspot-pulse" cx="240" cy="385" r="14"/>
+                  <circle class="hotspot-circle" cx="240" cy="385" r="13"/>
+                  <text class="hotspot-text" x="240" y="385">10</text>
+                </g>
+
+                <!-- 11. طول الذراع -->
+                <g class="hotspot-node" data-num="11">
+                  <circle class="hotspot-pulse" cx="290" cy="290" r="14"/>
+                  <circle class="hotspot-circle" cx="290" cy="290" r="13"/>
+                  <text class="hotspot-text" x="290" y="290">11</text>
+                </g>
+
+                <!-- 12. عرض الزندة -->
+                <g class="hotspot-node" data-num="12">
+                  <circle class="hotspot-pulse" cx="285" cy="220" r="14"/>
+                  <circle class="hotspot-circle" cx="285" cy="220" r="13"/>
+                  <text class="hotspot-text" x="285" y="220">12</text>
+                </g>
+
+                <!-- 13. دوران المعصم -->
+                <g class="hotspot-node" data-num="13">
+                  <circle class="hotspot-pulse" cx="275" cy="420" r="14"/>
+                  <circle class="hotspot-circle" cx="275" cy="420" r="13"/>
+                  <text class="hotspot-text" x="275" y="420">13</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- صندوق الإرشاد التفاعلي الذكي (Dynamic Guide Box) -->
+            <div id="mannequinActiveGuide" class="mt-4 text-right p-3.5 bg-white rounded-lg border border-amber-200/80 shadow-sm min-h-[95px] transition-all duration-300">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-6 h-6 rounded-full bg-black text-amber-300 font-bold flex items-center justify-center text-xs">✨</span>
+                <h4 class="font-bold text-gray-900 text-sm">انقري على أي نقطة من نقاط المانيكان</h4>
+              </div>
+              <p class="text-xs text-gray-600 leading-relaxed">
+                ستظهر لكِ طريقة القياس الصحيحة بالسنتيمتر مع تظليل خط القياس المقابل على المانيكان والتركيز على حقل الإدخال فوراً.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- الجانب الأيسر / استمارة تفاصيل الطلب والقياسات الـ 13 (Form & Fields) -->
+        <div class="lg:col-span-7">
+          <form id="measurementForm" class="bg-white rounded-xl border border-[#E7DFD5] p-6 md:p-8 shadow-sm space-y-8">
+            
+            <!-- أ. بيانات الزبونة والمناسبة -->
+            <div class="space-y-4 border-b border-gray-200 pb-6">
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-lg text-neutral-900 flex items-center gap-2">
+                  <span>👑 معلومات الزبونة والمناسبة</span>
+                </h3>
+                <span class="text-xs text-amber-700 font-semibold">* حقول أساسية</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="customerName" class="block text-xs font-bold text-gray-700 mb-1">إسم الزبونة *</label>
+                  <input type="text" id="customerName" name="customerName" required placeholder="مثال: نورة السبيعي" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600" />
+                </div>
+
+                <div>
+                  <label for="customerPhone" class="block text-xs font-bold text-gray-700 mb-1">رقم الهاتف / الواتساب *</label>
+                  <input type="tel" id="customerPhone" name="customerPhone" required placeholder="05xxxxxxxx" dir="ltr" class="w-full text-sm text-right border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600" />
+                </div>
+
+                <div>
+                  <label for="dressType" class="block text-xs font-bold text-gray-700 mb-1">نوع الفستان أو الموديل المطلوب</label>
+                  <input type="text" id="dressType" name="dressType" placeholder="فستان زفاف ملكي / فستان سهرة كوتور..." class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600" />
+                </div>
+
+                <div>
+                  <label for="eventDate" class="block text-xs font-bold text-gray-700 mb-1">تاريخ المناسبة المتوقع</label>
+                  <input type="date" id="eventDate" name="eventDate" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+                </div>
+
+                <div>
+                  <label for="orderDate" class="block text-xs font-bold text-gray-700 mb-1">تاريخ أخذ القياس</label>
+                  <input type="date" id="orderDate" name="orderDate" class="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray-50 text-gray-600" />
+                </div>
+              </div>
+            </div>
+
+            <!-- ب. حقول القياسات الـ 13 التفاعلية مع القوائم المنسدلة -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-bold text-lg text-neutral-900 flex items-center gap-2">
+                    <span>📏 القياسات الدقيقة الـ 13 (معتمدة لدار ريلاس)</span>
+                  </h3>
+                  <p class="text-xs text-gray-500">استخدمي القوائم المنسدلة لاختيار سريع أو ادخلي الرقم الدقيق.</p>
+                </div>
+                <span class="text-xs bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded">13 نقطة قياس</span>
+              </div>
+
+              <!-- حاوية بطاقات القياس الـ 13 (تتولد عبر mannequin.js) -->
+              <div id="measurementFieldsContainer" class="space-y-3">
+                <!-- جاري التوليد التفاعلي -->
+              </div>
+            </div>
+
+            <!-- ج. الملاحظات وإرفاق صورة التصميم -->
+            <div class="space-y-3 border-t border-gray-200 pt-6">
+              <label for="notes" class="block text-xs font-bold text-gray-700">
+                📝 ملاحظات إضافية، تعديلات على القصة، أو مواصفات خاصة:
+              </label>
+              <textarea id="notes" name="notes" rows="3" placeholder="مثال: أرغب في تطويل الذيل 50 سم إضافية، وتغطية الظهر بشبك تول شفاف مطرز..." class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none"></textarea>
+            </div>
+
+            <!-- د. أزرار الإرسال والحفظ والتواصل -->
+            <div class="pt-4 space-y-3">
+              <button type="submit" id="submitOrderBtn" class="w-full btn-luxury-gold py-4 text-base font-bold shadow-xl flex items-center justify-center gap-2">
+                <span>تأكيد وحفظ القياسات ومراسلة المصممة عبر الواتساب ✨</span>
+              </button>
+
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button type="button" onclick="window.mannequinStudio.previewTailorCard()" class="flex-1 btn-luxury-outline py-2.5 text-xs md:text-sm font-bold flex items-center justify-center gap-1.5">
+                  <span>معاينة وطباعة كرت القياسات الكلاسيكي</span> 🖨️
+                </button>
+                <a href="index.html#collections" class="flex-1 py-2.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded text-xs md:text-sm font-semibold text-center transition">
+                  تصفح فساتين أخرى 👗
+                </a>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- نافذة نجاح الطلب والتوجيه للواتساب (Order Success Modal) -->
+  <div id="orderSuccessModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center space-y-4 animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto">
+        ✓
+      </div>
+      <h3 class="text-xl font-bold text-gray-900">تم حفظ القياسات بنجاح! 🎉</h3>
+      <div id="orderSuccessSummary" class="text-xs text-gray-600 bg-gray-50 p-3 rounded border"></div>
+      
+      <div class="space-y-2 pt-2">
+        <a id="successWhatsAppBtn" href="#" target="_blank" class="w-full py-3.5 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2 shadow-lg text-sm">
+          <span>إرسال القياسات فوراً إلى واتساب ريلاس</span> 💬
+        </a>
+        <button type="button" onclick="window.mannequinStudio.previewTailorCard()" class="w-full py-2.5 bg-amber-100 text-amber-900 font-bold rounded-lg hover:bg-amber-200 transition text-xs">
+          🖨️ طباعة بطاقة القياسات للمشغل
+        </button>
+        <button type="button" onclick="document.getElementById('orderSuccessModal').classList.add('hidden')" class="w-full py-2 text-gray-500 hover:text-gray-800 text-xs">
+          إغلاق النافذة
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة بطاقة المشغل الكلاسيكية للطباعة (Vintage Tailor Card Modal) -->
+  <div id="tailorCardModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 relative max-h-[92vh] overflow-y-auto">
+      <button onclick="document.getElementById('tailorCardModal').classList.add('hidden')" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center justify-center font-bold">
+        ✕
+      </button>
+
+      <div class="flex items-center justify-between mb-4 border-b pb-3">
+        <h3 class="font-bold text-gray-900 text-sm flex items-center gap-2">
+          <span>بطاقة القياسات المعتمدة لمشغل دار ريلاس</span> 🧵
+        </h3>
+        <button onclick="window.print()" class="px-4 py-1.5 bg-black text-white text-xs font-bold rounded hover:bg-amber-700 transition flex items-center gap-1">
+          <span>طباعة الكرت</span> 🖨️
+        </button>
+      </div>
+
+      <!-- محتوى الكرت المولد -->
+      <div id="tailorCardContent"></div>
+    </div>
+  </div>
+
+  <!-- زر واتساب عائم -->
+  <a id="floatingWhatsAppBtn" href="https://wa.me/966551234567" target="_blank" class="floating-whatsapp" title="تحدثي مع مصممة ريلاس على الواتساب">
+    <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24">
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+    </svg>
+  </a>
+
+  <!-- استدعاء ملفات السكربت -->
+  <script src="js/data-initial.js"></script>
+  <script src="js/firebase-service.js"></script>
+  <script src="js/mannequin.js"></script>
+  <script>
+    // ملء اسم الموديل وتاريخ اليوم تلقائياً إذا تم التمرير من الرابط
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const model = urlParams.get('model');
+      if (model && document.getElementById('dressType')) {
+        document.getElementById('dressType').value = decodeURIComponent(model);
+      }
+      if (document.getElementById('orderDate')) {
+        document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+      }
+    });
+  </script>
+</body>
+</html>

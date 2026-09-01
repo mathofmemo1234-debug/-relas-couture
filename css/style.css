@@ -1,0 +1,510 @@
+/*
+ * Relas Couture - Luxury Bridal & Evening Design System
+ * نظام التصميم الفاخر لمتجر واستوديو ريلاس للأزياء
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --color-gold-primary: #c5a880;
+  --color-gold-light: #e2cca8;
+  --color-gold-dark: #9e7d52;
+  --color-gold-accent: #d4af37;
+  --color-bg-ivory: #faf8f5;
+  --color-bg-sand: #f4eee5;
+  --color-bg-card: #ffffff;
+  --color-noir: #141414;
+  --color-noir-soft: #222222;
+  --color-text-muted: #737373;
+  --color-border: #e7dfd5;
+  --font-arabic: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --font-royal: 'Cinzel', serif;
+  --font-traditional: 'Amiri', serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-arabic);
+  background-color: var(--color-bg-ivory);
+  color: var(--color-noir);
+  direction: rtl;
+  text-align: right;
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Luxury Typography --- */
+.font-serif { font-family: var(--font-serif); }
+.font-royal { font-family: var(--font-royal); }
+.font-traditional { font-family: var(--font-traditional); }
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-noir);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #d4af37 0%, #b89768 50%, #e6ca97 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #c5a880 0%, #a9895c 100%);
+}
+
+.gold-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.gold-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  transform: rotate(30deg);
+  animation: shimmer 6s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translate(-100%, -100%) rotate(30deg); }
+  100% { transform: translate(100%, 100%) rotate(30deg); }
+}
+
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-sand);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold-primary);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-dark);
+}
+
+/* --- Buttons & Luxury Controls --- */
+.btn-luxury-primary {
+  background: var(--color-noir);
+  color: #ffffff;
+  border: 1px solid var(--color-noir);
+  padding: 12px 28px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.btn-luxury-primary:hover {
+  background: var(--color-gold-primary);
+  border-color: var(--color-gold-primary);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(197, 168, 128, 0.25);
+}
+
+.btn-luxury-gold {
+  background: linear-gradient(135deg, #c5a880 0%, #a9895c 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.btn-luxury-gold:hover {
+  background: linear-gradient(135deg, #b89768 0%, #8f7045 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(197, 168, 128, 0.35);
+}
+
+.btn-luxury-outline {
+  background: transparent;
+  color: var(--color-noir);
+  border: 1px solid var(--color-noir);
+  padding: 11px 26px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.btn-luxury-outline:hover {
+  background: var(--color-noir);
+  color: #ffffff;
+}
+
+/* --- Floating WhatsApp Button --- */
+.floating-whatsapp {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 60px;
+  height: 60px;
+  background-color: #25D366;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
+  z-index: 9999;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-decoration: none;
+}
+.floating-whatsapp:hover {
+  transform: scale(1.1) rotate(8deg);
+  box-shadow: 0 15px 35px rgba(37, 211, 102, 0.6);
+  color: white;
+}
+.floating-whatsapp::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.7;
+  animation: pulse-wa 2s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse-wa {
+  0% { transform: scale(1); opacity: 0.7; }
+  70% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* --- Interactive Mannequin Studio Styling --- */
+.mannequin-container {
+  position: relative;
+  background: radial-gradient(circle at center, #ffffff 0%, #fbf8f3 70%, #f4ede2 100%);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.mannequin-svg {
+  width: 100%;
+  height: auto;
+  max-height: 720px;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.06));
+}
+
+/* Mannequin Interactive Hotspots */
+.hotspot-node {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hotspot-circle {
+  fill: #141414;
+  stroke: #ffffff;
+  stroke-width: 2;
+  transition: all 0.3s ease;
+}
+
+.hotspot-text {
+  fill: #ffffff;
+  font-family: var(--font-arabic);
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  user-select: none;
+  pointer-events: none;
+}
+
+.hotspot-pulse {
+  fill: none;
+  stroke: #c5a880;
+  stroke-width: 2;
+  opacity: 0.8;
+  animation: pulse-ring 2.5s infinite;
+}
+
+@keyframes pulse-ring {
+  0% { r: 14; opacity: 0.8; }
+  100% { r: 28; opacity: 0; }
+}
+
+.hotspot-node:hover .hotspot-circle,
+.hotspot-node.active .hotspot-circle {
+  fill: #c5a880;
+  transform: scale(1.25);
+  transform-origin: center;
+  filter: drop-shadow(0 0 10px rgba(197, 168, 128, 0.8));
+}
+
+.hotspot-node.active .hotspot-pulse {
+  stroke: #d4af37;
+  animation-duration: 1.2s;
+}
+
+/* Measurement Guide Lines */
+.guideline-path {
+  stroke: #c5a880;
+  stroke-width: 2;
+  stroke-dasharray: 4, 4;
+  opacity: 0.35;
+  transition: all 0.4s ease;
+}
+
+.guideline-path.highlighted {
+  stroke: #d4af37;
+  stroke-width: 3.5;
+  stroke-dasharray: none;
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.7));
+  animation: dash 1s linear infinite;
+}
+
+/* Measurement Form Cards & Fields */
+.measurement-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.measurement-card:hover,
+.measurement-card.active-field {
+  border-color: var(--color-gold-primary);
+  box-shadow: 0 8px 25px rgba(197, 168, 128, 0.15);
+  transform: translateY(-2px);
+}
+
+.measurement-card.active-field {
+  background: #fdfbf8;
+  border-width: 2px;
+}
+
+.badge-number {
+  width: 28px;
+  height: 28px;
+  background: var(--color-noir);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.measurement-card.active-field .badge-number,
+.measurement-card:hover .badge-number {
+  background: var(--color-gold-primary);
+  color: #ffffff;
+}
+
+/* --- Vintage Tailor Card Print & Modal Style (مطابق لبطاقة ريلاس المرفقة) --- */
+.vintage-tailor-card {
+  background: #deb03f;
+  background: linear-gradient(145deg, #e8ba45 0%, #d89f29 50%, #c48b1c 100%);
+  color: #1a1a1a;
+  border-radius: 24px;
+  padding: 35px 30px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+  font-family: var(--font-traditional), var(--font-arabic);
+}
+
+.vintage-tailor-card::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.tailor-header-hanger {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.tailor-hanger-img {
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.tailor-dots-line {
+  border-bottom: 2px dotted #4a3508;
+  display: inline-block;
+  min-width: 140px;
+  margin-right: 8px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #1c1103;
+}
+
+.tailor-quote-box {
+  background: #a3387a;
+  background: linear-gradient(135deg, #872863 0%, #b34289 100%);
+  color: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  margin-top: 25px;
+  position: relative;
+}
+
+/* --- Product Cards (Rosa Clara Style) --- */
+.dress-card {
+  background: #ffffff;
+  border: 1px solid #f0e9df;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dress-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-gold-light);
+}
+
+.dress-image-wrapper {
+  position: relative;
+  padding-top: 140%; /* 1:1.4 luxury fashion aspect ratio */
+  overflow: hidden;
+  background-color: #f7f5f2;
+}
+
+.dress-image-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dress-card:hover .dress-image-wrapper img {
+  transform: scale(1.06);
+}
+
+.dress-action-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(20, 20, 20, 0.8) 0%, rgba(20, 20, 20, 0) 100%);
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.3s ease;
+}
+
+.dress-card:hover .dress-action-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Installment Badges */
+.tamara-badge, .tabby-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #4a4a4a;
+  background: #f8f6f2;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #ebdccb;
+}
+
+/* Status Badges */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-pill.yellow { background: #fff8e1; color: #b78103; border: 1px solid #ffe082; }
+.status-pill.blue { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+.status-pill.purple { background: #f3e5f5; color: #7b1fa2; border: 1px solid #ce93d8; }
+.status-pill.orange { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+.status-pill.green { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.status-pill.red { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+
+/* Modal Backdrop */
+.modal-backdrop {
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printTailorCardSection, #printTailorCardSection * {
+    visibility: visible;
+  }
+  #printTailorCardSection {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}

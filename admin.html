@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم والإدارة | ريلاس لفساتين السهرة والزفاف - Relas Admin</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: {
+              500: '#c5a880',
+              600: '#b08b57',
+              700: '#926e42',
+            },
+            noir: '#141414',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Tajawal:wght@400;500;700;800;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+
+  <!-- Firebase App & Firestore SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#f8f6f2] text-[#141414] antialiased min-h-screen flex flex-col font-sans">
+
+  <!-- 1. شاشة تسجيل الدخول المقفلة (Admin Login Gate) -->
+  <section id="adminLoginSection" class="fixed inset-0 z-50 bg-neutral-950 flex items-center justify-center p-4">
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl text-white">
+      <div>
+        <span class="font-royal text-2xl font-bold tracking-[0.2em] text-white block uppercase">RELAS</span>
+        <span class="text-xs text-amber-400 font-bold tracking-wider">لوحة التحكم والإدارة الذكية</span>
+      </div>
+
+      <p class="text-xs text-gray-400">
+        أدخلي كلمة المرور أو رمز الدخول المشفر للوصول إلى إدارة الفساتين، طلبات القياسات، وتغيير رقم الواتساب.
+      </p>
+
+      <form id="adminLoginForm" class="space-y-4">
+        <div>
+          <input 
+            type="password" 
+            id="adminPinInput" 
+            placeholder="كلمة المرور (الافتراضي: 123456)" 
+            class="w-full text-center tracking-widest text-lg font-bold bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-white focus:border-amber-500 focus:outline-none"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+
+        <div id="adminLoginError" class="text-xs text-red-400 font-semibold hidden"></div>
+
+        <button type="submit" class="w-full btn-luxury-gold py-3 text-sm font-bold shadow-lg">
+          دخول لوحة التحكم 🔑
+        </button>
+
+        <a href="index.html" class="block text-xs text-gray-500 hover:text-gray-300">
+          العودة للمتجر الرئيسي ↩️
+        </a>
+      </form>
+    </div>
+  </section>
+
+  <!-- 2. جسم لوحة التحكم الرئيسي (Dashboard Body) -->
+  <div id="adminDashboardSection" class="hidden flex-grow flex flex-col">
+    
+    <!-- الترويسة العلوية للوحة التحكم -->
+    <header class="bg-neutral-900 text-white border-b border-neutral-800 py-3 px-6 sticky top-0 z-40">
+      <div class="container mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <a href="index.html" class="flex flex-col items-start">
+            <span class="font-royal text-xl font-bold tracking-widest text-white uppercase">RELAS ADMIN</span>
+            <span class="text-[10px] text-amber-400">دار ريلاس للأزياء</span>
+          </a>
+          <div id="firebaseStatusIndicator" class="hidden sm:flex items-center gap-2 bg-neutral-800/80 px-3 py-1 rounded-full border border-neutral-700">
+            <!-- مؤشر حالة Firebase -->
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <a href="index.html" target="_blank" class="text-xs text-gray-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded transition">
+            عرض المتجر 🌐
+          </a>
+          <a href="measurements.html" target="_blank" class="text-xs text-amber-300 hover:text-amber-200 bg-amber-950/60 border border-amber-800 px-3 py-1.5 rounded transition">
+            استوديو القياسات 📐
+          </a>
+          <button id="adminLogoutBtn" class="text-xs text-red-400 hover:text-red-300 bg-red-950/50 hover:bg-red-900/50 px-3 py-1.5 rounded transition">
+            خروج 🚪
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- شريط التنقل بين التبويبات (Dashboard Tabs Navigation) -->
+    <nav class="bg-neutral-950 text-gray-300 border-b border-neutral-800 px-6 py-2">
+      <div class="container mx-auto flex items-center gap-2 overflow-x-auto">
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-bold bg-amber-600 text-white flex items-center gap-1.5 transition" data-tab="overview">
+          📊 النظرة العامة
+        </button>
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition" data-tab="dresses">
+          👗 إدارة الفساتين والكاتالوج
+        </button>
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition" data-tab="orders">
+          📐 طلبات القياس والتفصيل
+        </button>
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition" data-tab="settings">
+          ⚙️ إعدادات المتجر والواتساب
+        </button>
+      </div>
+    </nav>
+
+    <!-- مساحة المحتوى للتبويبات (Tab Panes) -->
+    <main class="container mx-auto px-4 lg:px-8 py-8 flex-grow">
+      
+      <!-- ==================== تبويب 1: النظرة العامة (Overview) ==================== -->
+      <div id="tabPane_overview" class="admin-tab-pane space-y-8">
+        
+        <!-- بطاقات الإحصائيات الأربع -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <span class="text-xs text-gray-500 font-bold block mb-1">إجمالي الفساتين</span>
+            <div class="flex items-baseline justify-between">
+              <span id="statTotalDresses" class="text-3xl font-black text-neutral-900">0</span>
+              <span class="text-2xl">👗</span>
+            </div>
+            <span class="text-[11px] text-amber-700 mt-2 block">في الكاتالوج العام</span>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <span class="text-xs text-gray-500 font-bold block mb-1">طلبات القياسات الإجمالية</span>
+            <div class="flex items-baseline justify-between">
+              <span id="statTotalOrders" class="text-3xl font-black text-neutral-900">0</span>
+              <span class="text-2xl">📐</span>
+            </div>
+            <span class="text-[11px] text-emerald-700 mt-2 block">استوديو القياسات</span>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <span class="text-xs text-gray-500 font-bold block mb-1">طلبات جديدة بانتظار المراجعة</span>
+            <div class="flex items-baseline justify-between">
+              <span id="statNewOrders" class="text-3xl font-black text-amber-600">0</span>
+              <span class="text-2xl">🟡</span>
+            </div>
+            <span class="text-[11px] text-gray-500 mt-2 block">تحتاج لتواصل وتأكيد</span>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <span class="text-xs text-gray-500 font-bold block mb-1">طلبات قيد التفصيل</span>
+            <div class="flex items-baseline justify-between">
+              <span id="statActiveTailoring" class="text-3xl font-black text-purple-700">0</span>
+              <span class="text-2xl">🧵</span>
+            </div>
+            <span class="text-[11px] text-purple-600 mt-2 block">في مشغل ريلاس</span>
+          </div>
+        </div>
+
+        <!-- بطاقة الواتساب النشط السريعة -->
+        <div class="bg-emerald-900/90 text-white p-6 rounded-xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+              <h3 class="font-bold text-base md:text-lg">رقم الواتساب الافتراضي المعتمد للمتجر:</h3>
+            </div>
+            <p class="text-xs text-emerald-200">
+              كافة أزرار الموقع ("طلب تفصيل"، "استشارة"، "أخذ القياسات") ترسل مباشرة إلى هذا الرقم.
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="statWhatsAppDisplay" class="font-mono text-xl font-black bg-emerald-950 px-4 py-2 rounded-lg border border-emerald-700" dir="ltr">
+              966551234567
+            </span>
+            <button onclick="document.querySelector('[data-tab=\'settings\']').click()" class="bg-white text-emerald-950 hover:bg-emerald-100 px-4 py-2 rounded-lg text-xs font-bold transition shadow">
+              تغيير الرقم ⚙️
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== تبويب 2: إدارة الفساتين (Dresses Management) ==================== -->
+      <div id="tabPane_dresses" class="admin-tab-pane hidden space-y-6">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200">
+          <div>
+            <h2 class="text-lg font-bold text-gray-900">إدارة كاتالوج الفساتين</h2>
+            <p class="text-xs text-gray-500">إضافة وتعديل وحذف فساتين الزفاف والسهرة وتحديث الأسعار والصور.</p>
+          </div>
+          <button id="openAddDressModalBtn" class="btn-luxury-gold text-xs md:text-sm py-2.5 px-5 font-bold shadow">
+            ➕ إضافة فستان جديد
+          </button>
+        </div>
+
+        <!-- جدول الفساتين -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-600">
+                <th class="py-3 px-4">#</th>
+                <th class="py-3 px-4">الفستان والتصنيف</th>
+                <th class="py-3 px-4">السعر</th>
+                <th class="py-3 px-4">البادج</th>
+                <th class="py-3 px-4">الحالة</th>
+                <th class="py-3 px-4 text-left">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="dressesTableBody">
+              <!-- يتم ملؤه عبر admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== تبويب 3: طلبات القياس والتفصيل (Orders Management) ==================== -->
+      <div id="tabPane_orders" class="admin-tab-pane hidden space-y-6">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200">
+          <div>
+            <h2 class="text-lg font-bold text-gray-900">طلبات القياسات والتفصيل (استوديو ريلاس)</h2>
+            <p class="text-xs text-gray-500">متابعة مقاسات الزبونات، تغيير حالة الطلب، طباعة كرت المشغل، والمراسلة عبر الواتساب.</p>
+          </div>
+        </div>
+
+        <!-- جدول الطلبات -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-600">
+                <th class="py-3 px-4">رقم الطلب</th>
+                <th class="py-3 px-4">الزبونة والهاتف</th>
+                <th class="py-3 px-4">الموديل والتاريخ</th>
+                <th class="py-3 px-4">حالة الطلب</th>
+                <th class="py-3 px-4 text-left">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+              <!-- يتم ملؤه عبر admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== تبويب 4: إعدادات المتجر والواتساب (Settings & WhatsApp) ==================== -->
+      <div id="tabPane_settings" class="admin-tab-pane hidden space-y-8">
+        
+        <!-- استمارة الإعدادات العامة والواتساب -->
+        <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm">
+          <div class="flex items-center gap-2 mb-6 border-b pb-4">
+            <span class="text-2xl">📱</span>
+            <div>
+              <h3 class="font-bold text-lg text-gray-900">إعدادات التواصل ورقم الواتساب الافتراضي</h3>
+              <p class="text-xs text-gray-500">تحديث رقم الواتساب يغيره تلقائياً في كافة أزرار الموقع والصفحات.</p>
+            </div>
+          </div>
+
+          <form id="storeSettingsForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <!-- حقل الواتساب الأساسي -->
+              <div class="md:col-span-2 bg-emerald-50/70 p-4 rounded-lg border border-emerald-200">
+                <label for="settingsWhatsApp" class="block text-xs font-bold text-emerald-950 mb-1">
+                  رقم الواتساب الافتراضي المعتمد (مع مفتاح الدولة بدون + وبدون أصفار إضافية) *
+                </label>
+                <div class="flex gap-2">
+                  <input 
+                    type="text" 
+                    id="settingsWhatsApp" 
+                    required 
+                    placeholder="مثال: 966551234567" 
+                    dir="ltr"
+                    class="w-full text-base font-bold font-mono border border-emerald-300 rounded px-3 py-2 bg-white text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  />
+                  <button type="button" onclick="testWhatsAppLink()" class="px-4 py-2 bg-emerald-600 text-white rounded text-xs font-bold hover:bg-emerald-700 transition flex-shrink-0">
+                    تجربة الرقم 📲
+                  </button>
+                </div>
+                <span class="text-[11px] text-emerald-800 mt-1 block">مثال للسعودية: 966501234567 أو 966551234567</span>
+              </div>
+
+              <div>
+                <label for="settingsStoreName" class="block text-xs font-bold text-gray-700 mb-1">اسم المتجر / الدار</label>
+                <input type="text" id="settingsStoreName" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+
+              <div>
+                <label for="settingsPhone" class="block text-xs font-bold text-gray-700 mb-1">رقم الهاتف الظاهر للاتصال</label>
+                <input type="text" id="settingsPhone" dir="ltr" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none text-right" />
+              </div>
+
+              <div>
+                <label for="settingsEmail" class="block text-xs font-bold text-gray-700 mb-1">البريد الإلكتروني</label>
+                <input type="email" id="settingsEmail" dir="ltr" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none text-right" />
+              </div>
+
+              <div>
+                <label for="settingsCity" class="block text-xs font-bold text-gray-700 mb-1">المدينة والموقع</label>
+                <input type="text" id="settingsCity" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+
+              <div class="md:col-span-2">
+                <label for="settingsAnnouncement" class="block text-xs font-bold text-gray-700 mb-1">نص شريط الإعلانات العلوي</label>
+                <input type="text" id="settingsAnnouncement" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+
+              <div class="md:col-span-2">
+                <label for="settingsStoreTagline" class="block text-xs font-bold text-gray-700 mb-1">العبارة الترحيبية (Tagline)</label>
+                <input type="text" id="settingsStoreTagline" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+
+              <div>
+                <label for="settingsAdminPin" class="block text-xs font-bold text-gray-700 mb-1">كلمة مرور لوحة التحكم الجديدة</label>
+                <input type="text" id="settingsAdminPin" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none font-mono" />
+              </div>
+
+            </div>
+
+            <div class="pt-4 border-t">
+              <button type="submit" class="btn-luxury-gold py-3 px-8 text-sm font-bold shadow-md">
+                حفظ كافة الإعدادات والواتساب 💾✨
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- إعدادات قاعدة بيانات Firebase Firestore -->
+        <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm">
+          <div class="flex items-center gap-2 mb-4 border-b pb-3">
+            <span class="text-2xl">🔥</span>
+            <div>
+              <h3 class="font-bold text-lg text-gray-900">ربط قاعدة بيانات Firebase Firestore (سحابياً)</h3>
+              <p class="text-xs text-gray-500">
+                يمكنكِ إدخال مفاتيح مشروع Firebase الخاص بكِ هنا للمزامنة السحابية الفورية. (الموقع يعمل تلقائياً وبأمان في وضع التخزين المحلي إذا تركت فارغة).
+              </p>
+            </div>
+          </div>
+
+          <form id="firebaseConfigForm" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">API Key</label>
+                <input type="text" id="fbApiKey" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Project ID</label>
+                <input type="text" id="fbProjectId" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Auth Domain</label>
+                <input type="text" id="fbAuthDomain" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Storage Bucket</label>
+                <input type="text" id="fbStorageBucket" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-gray-700 mb-1">App ID</label>
+                <input type="text" id="fbAppId" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+              </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+              <button type="submit" class="btn-luxury-primary text-xs py-2.5 px-6 font-bold">
+                حفظ وتفعيل Firebase 🔥
+              </button>
+              <button type="button" onclick="clearFirebaseKeys()" class="btn-luxury-outline text-xs py-2.5 px-4">
+                الاعتماد على التخزين المحلي فقط 🟡
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- نافذة إضافة / تعديل فستان (Dress Modal) -->
+  <div id="dressFormModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-6 md:p-8 relative">
+      <button id="closeDressModalBtn" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">✕</button>
+      
+      <h3 id="dressModalTitle" class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+        إضافة فستان وتصميم جديد ✨
+      </h3>
+
+      <form id="dressForm" class="space-y-4">
+        <input type="hidden" id="dressFormId" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-gray-700 mb-1">اسم الفستان والموديل *</label>
+            <input type="text" id="dressInputTitle" required class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">التصنيف *</label>
+            <select id="dressInputCategory" required class="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white focus:border-amber-600 focus:outline-none">
+              <option value="bridal">فساتين زفاف</option>
+              <option value="evening">فساتين سهرة</option>
+              <option value="reception">فساتين خطوبة وملكة</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">السعر (ر.س) *</label>
+            <input type="number" id="dressInputPrice" required min="0" step="50" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">السعر قبل الخصم (اختياري)</label>
+            <input type="number" id="dressInputOldPrice" min="0" step="50" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">شارة خاصة (Badge)</label>
+            <input type="text" id="dressInputBadge" placeholder="مثال: الأكثر طلباً / كولكشن الهوت كوتور" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">نوع القماش</label>
+            <input type="text" id="dressInputFabric" placeholder="دانتيل فرنسي، ميكادو حرير..." class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">القصة (Silhouette)</label>
+            <input type="text" id="dressInputSilhouette" placeholder="A-Line / حورية البحر..." class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">قصة الصدر / الياقة</label>
+            <input type="text" id="dressInputNeckline" placeholder="Sweetheart / V-Neck..." class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+          </div>
+
+          <div class="flex items-center pt-5">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-800">
+              <input type="checkbox" id="dressInputIsNew" class="w-4 h-4 text-amber-600 rounded" />
+              <span>تعليم كـ "وصل حديثاً" 🌟</span>
+            </label>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-gray-700 mb-1">روابط الصور (رابط في كل سطر)</label>
+            <textarea id="dressInputImages" rows="3" placeholder="https://images.unsplash.com/photo-..." class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none"></textarea>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-gray-700 mb-1">وصف الفستان والتفاصيل</label>
+            <textarea id="dressInputDesc" rows="3" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t flex justify-end gap-3">
+          <button type="button" onclick="document.getElementById('dressFormModal').classList.add('hidden')" class="btn-luxury-outline text-xs py-2">
+            إلغاء
+          </button>
+          <button type="submit" class="btn-luxury-gold text-xs py-2 px-6 font-bold">
+            حفظ الفستان ✨
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة استعراض تفاصيل طلب القياسات (Order Details Modal) -->
+  <div id="orderDetailsModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
+      <button onclick="document.getElementById('orderDetailsModal').classList.add('hidden')" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">✕</button>
+      <div id="orderDetailsContent"></div>
+    </div>
+  </div>
+
+  <!-- نافذة كرت المشغل للطباعة (Tailor Card Print Modal) -->
+  <div id="tailorCardModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 relative max-h-[92vh] overflow-y-auto">
+      <button onclick="document.getElementById('tailorCardModal').classList.add('hidden')" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center justify-center font-bold">
+        ✕
+      </button>
+      <div class="flex items-center justify-between mb-4 border-b pb-3">
+        <h3 class="font-bold text-gray-900 text-sm">بطاقة القياسات المعتمدة لمشغل ريلاس</h3>
+        <button onclick="window.print()" class="px-4 py-1.5 bg-black text-white text-xs font-bold rounded hover:bg-amber-700 transition">
+          طباعة الكرت 🖨️
+        </button>
+      </div>
+      <div id="tailorCardContent"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/data-initial.js"></script>
+  <script src="js/firebase-service.js"></script>
+  <script src="js/mannequin.js"></script>
+  <script src="js/admin.js"></script>
+  <script>
+    function testWhatsAppLink() {
+      const num = document.getElementById('settingsWhatsApp').value.trim().replace(/[^0-9]/g, '');
+      if (num) {
+        window.open(`https://wa.me/${num}?text=${encodeURIComponent('تجربة ربط واتساب ريلاس للأزياء ✨')}`, '_blank');
+      } else {
+        alert("يرجى إدخال رقم الواتساب أولاً.");
+      }
+    }
+    function clearFirebaseKeys() {
+      if (confirm("هل ترغبين في مسح مفاتيح Firebase والاعتماد على التخزين المحلي؟")) {
+        window.relasDataService.saveFirebaseConfig(null);
+        document.getElementById('fbApiKey').value = '';
+        document.getElementById('fbProjectId').value = '';
+        document.getElementById('fbAuthDomain').value = '';
+        document.getElementById('fbStorageBucket').value = '';
+        document.getElementById('fbAppId').value = '';
+        alert("تم مسح المفاتيح بنجاح.");
+      }
+    }
+  </script>
+</body>
+</html>
