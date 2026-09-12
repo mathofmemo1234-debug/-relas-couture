@@ -525,6 +525,38 @@
     </div>
   </div>
 
+  <!-- نافذة إرشاد التثبيت لمستخدمي أندرويد والكمبيوتر -->
+  <div id="android-install-modal" class="ios-install-modal" style="display:none;" onclick="closeAndroidInstallModal()">
+    <div class="ios-install-box" onclick="event.stopPropagation()">
+      <button class="ios-install-close" onclick="closeAndroidInstallModal()">✕</button>
+      <div class="ios-install-header">
+        <img src="apple-touch-icon.png" alt="ريلاس للأزياء" class="ios-app-icon" />
+        <div>
+          <div class="ios-app-title">تثبيت تطبيق ريلاس للأزياء 📲</div>
+          <div class="ios-app-desc">خطوات التثبيت المباشر على الشاشة الرئيسية</div>
+        </div>
+      </div>
+      <div class="ios-steps">
+        <div class="ios-step">
+          <span class="ios-step-num">1</span>
+          <span>اضغطي على زر خيارات المتصفح <strong>( الثلاث نقاط ⋮ أو ⋯ )</strong> في الزاوية العلوية أو السفلية.</span>
+        </div>
+        <div class="ios-step">
+          <span class="ios-step-num">2</span>
+          <span>اختاري <strong>«تثبيت التطبيق» (Install App)</strong> أو <strong>«إضافة إلى الشاشة الرئيسية»</strong> ➕.</span>
+        </div>
+        <div class="ios-step">
+          <span class="ios-step-num">3</span>
+          <span>اضغطي على <strong>«تثبيت» (Install)</strong>، وسيظهر التطبيق فوراً على شاشتك الرئيسية! ✨</span>
+        </div>
+      </div>
+      <p class="text-[11px] text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200 mb-3 text-center">
+        💡 إذا كنتِ تتصفحين من داخل تطبيق (مثل واتساب)، اضغطي على الثلاث نقاط واختاري <strong>"فتح في Chrome"</strong> أولاً.
+      </p>
+      <button class="ios-confirm-btn" onclick="closeAndroidInstallModal()">حسناً، فهمت</button>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="js/data-initial.js"></script>
   <script src="js/firebase-service.js"></script>
@@ -575,7 +607,8 @@
         const modal = document.getElementById('ios-install-modal');
         if (modal) modal.style.display = 'flex';
       } else {
-        alert('لتثبيت تطبيق ريلاس: افتحي خيارات المتصفح (⋮) واختاري "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"');
+        const modal = document.getElementById('android-install-modal');
+        if (modal) modal.style.display = 'flex';
       }
     }
 
@@ -584,11 +617,17 @@
       if (modal) modal.style.display = 'none';
     }
 
-    if (isIos && !isStandalone) {
+    function closeAndroidInstallModal() {
+      const modal = document.getElementById('android-install-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    // إظهار زر التثبيت الذكي لجميع الأجهزة بعد ثانية واحدة إذا لم يكن التطبيق مثبتًا
+    if (!isStandalone) {
       setTimeout(() => {
         const btnContainer = document.getElementById('pwa-install-container');
         if (btnContainer) btnContainer.style.display = 'block';
-      }, 2500);
+      }, 800);
     }
 
     // ===== CAPACITOR NATIVE INTEGRATION =====
