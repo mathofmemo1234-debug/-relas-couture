@@ -44,7 +44,7 @@ function initAdminAuth() {
         dashboardSection.classList.remove('hidden');
         loadDashboardData();
       } else {
-        loginError.textContent = "كلمة المرور / الرمز غير صحيح. (الافتراضي: memo1974)";
+        loginError.textContent = "رمز المرور غير صحيح، يرجى التحقق والمحاولة مجدداً.";
         loginError.classList.remove('hidden');
       }
     });
@@ -590,7 +590,7 @@ function populateSettingsForm() {
   document.getElementById('settingsEmail').value = storeSettings.email || '';
   document.getElementById('settingsCity').value = storeSettings.city || '';
   document.getElementById('settingsAnnouncement').value = storeSettings.announcementText || '';
-  document.getElementById('settingsAdminPin').value = storeSettings.adminPin || 'memo1974';
+  document.getElementById('settingsAdminPin').value = '';
 
   // إعدادات Firebase
   const fbConfig = window.relasDataService.getFirebaseConfig();
@@ -609,7 +609,7 @@ window.openQuickContactModal = function() {
   if (!modal) return;
   document.getElementById('quickModalWhatsApp').value = storeSettings.whatsappNumber || '966551234567';
   document.getElementById('quickModalPhone').value = storeSettings.phoneNumber || '+966 55 123 4567';
-  document.getElementById('quickModalAdminPin').value = storeSettings.adminPin || 'memo1974';
+  document.getElementById('quickModalAdminPin').value = '';
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 };
@@ -638,21 +638,24 @@ function bindSettingsEvents() {
       e.preventDefault();
       const newWhatsApp = document.getElementById('quickModalWhatsApp').value.trim();
       const newPhone = document.getElementById('quickModalPhone').value.trim();
-      const newPin = document.getElementById('quickModalAdminPin').value.trim() || 'memo1974';
+      const enteredNewPin = document.getElementById('quickModalAdminPin').value.trim();
 
       const updated = {
         ...storeSettings,
         whatsappNumber: newWhatsApp,
-        phoneNumber: newPhone,
-        adminPin: newPin
+        phoneNumber: newPhone
       };
+
+      if (enteredNewPin) {
+        updated.adminPin = enteredNewPin;
+      }
 
       await window.relasDataService.saveSettings(updated);
       storeSettings = updated;
       populateSettingsForm();
       updateStatsCards();
       closeQuickContactModal();
-      alert(`✅ تم تحديث وتفعيل رقم الواتساب (${newWhatsApp}) وكلمة المرور فوراً عبر كامل الموقع!`);
+      alert(`✅ تم تحديث وتفعيل رقم الواتساب (${newWhatsApp}) بنجاح! تم تطبيق التغييرات فوراً عبر كامل المتجر.`);
     });
   }
 
@@ -660,6 +663,7 @@ function bindSettingsEvents() {
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const enteredNewPin = document.getElementById('settingsAdminPin').value.trim();
       const updated = {
         ...storeSettings,
         storeName: document.getElementById('settingsStoreName').value.trim(),
@@ -668,9 +672,12 @@ function bindSettingsEvents() {
         phoneNumber: document.getElementById('settingsPhone').value.trim(),
         email: document.getElementById('settingsEmail').value.trim(),
         city: document.getElementById('settingsCity').value.trim(),
-        announcementText: document.getElementById('settingsAnnouncement').value.trim(),
-        adminPin: document.getElementById('settingsAdminPin').value.trim() || 'memo1974'
+        announcementText: document.getElementById('settingsAnnouncement').value.trim()
       };
+
+      if (enteredNewPin) {
+        updated.adminPin = enteredNewPin;
+      }
 
       await window.relasDataService.saveSettings(updated);
       storeSettings = updated;
