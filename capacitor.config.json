@@ -1,0 +1,20 @@
+{
+  "appId": "sa.com.relas.couture",
+  "appName": "ريلاس للأزياء",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#141414",
+      "overlaysWebView": false
+    }
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  }
+}

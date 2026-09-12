@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ريلاس للأزياء</string>
+    <string name="title_activity_main">ريلاس للأزياء</string>
+    <string name="package_name">sa.com.relas.couture</string>
+    <string name="custom_url_scheme">sa.com.relas.couture</string>
+</resources>

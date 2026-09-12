@@ -2,9 +2,24 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ريلاس لفساتين السهرة والزفاف | Relas Couture - الرياض</title>
   <meta name="description" content="دار ريلاس للأزياء الراقية - تشكيلات حصرية من فساتين الزفاف والسهرة وتفصيل الهوت كوتور بالطلب مع استوديو أخذ القياسات الذكي.">
+
+  <!-- Mobile & PWA Settings -->
+  <meta name="theme-color" content="#141414">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ريلاس للأزياء">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="ريلاس للأزياء">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- Icons & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -473,9 +488,134 @@
     </div>
   </div>
 
+  <!-- زر تثبيت تطبيق ريلاس الذكي (PWA / Mobile & Desktop App) -->
+  <div id="pwa-install-container" class="pwa-install-container" style="display:none;">
+    <button id="pwa-install-btn" class="pwa-install-btn" onclick="handlePwaInstallClick()">
+      <span class="pwa-install-icon">📲</span>
+      <span>تثبيت تطبيق ريلاس</span>
+    </button>
+  </div>
+
+  <!-- نافذة إرشاد التثبيت لمستخدمي iPhone و iPad (Safari) -->
+  <div id="ios-install-modal" class="ios-install-modal" style="display:none;" onclick="closeIosInstallModal()">
+    <div class="ios-install-box" onclick="event.stopPropagation()">
+      <button class="ios-install-close" onclick="closeIosInstallModal()">✕</button>
+      <div class="ios-install-header">
+        <img src="apple-touch-icon.png" alt="ريلاس للأزياء" class="ios-app-icon" />
+        <div>
+          <div class="ios-app-title">ريلاس | بوتيك فساتين السهرة والزفاف</div>
+          <div class="ios-app-desc">ثبّتي التطبيق على جهازك لتجربة تسوق استثنائية وسريعة</div>
+        </div>
+      </div>
+      <div class="ios-steps">
+        <div class="ios-step">
+          <span class="ios-step-num">1</span>
+          <span>اضغطي على زر المشاركة <strong>(Share <span style="font-size:1.1rem;">⎋</span>)</strong> في شريط متصفح سفاري.</span>
+        </div>
+        <div class="ios-step">
+          <span class="ios-step-num">2</span>
+          <span>اسحبي لأسفل واختاري <strong>«إضافة إلى الصفحة الرئيسية»</strong> ➕.</span>
+        </div>
+        <div class="ios-step">
+          <span class="ios-step-num">3</span>
+          <span>اضغطي على <strong>«إضافة» (Add)</strong> في الزاوية العلوية.</span>
+        </div>
+      </div>
+      <button class="ios-confirm-btn" onclick="closeIosInstallModal()">حسناً، فهمت</button>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="js/data-initial.js"></script>
   <script src="js/firebase-service.js"></script>
   <script src="js/app.js"></script>
+
+  <script>
+    // ===== PWA & SERVICE WORKER REGISTRATION =====
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('Relas ServiceWorker registered:', reg.scope))
+          .catch((err) => console.log('Relas ServiceWorker error:', err));
+      });
+    }
+
+    // ===== PWA INSTALL PROMPT LOGIC =====
+    let deferredPrompt = null;
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btnContainer = document.getElementById('pwa-install-container');
+      if (btnContainer && !isStandalone) {
+        btnContainer.style.display = 'block';
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('Relas app installed successfully');
+      const btnContainer = document.getElementById('pwa-install-container');
+      if (btnContainer) btnContainer.style.display = 'none';
+      deferredPrompt = null;
+    });
+
+    function handlePwaInstallClick() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            const btnContainer = document.getElementById('pwa-install-container');
+            if (btnContainer) btnContainer.style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+      } else if (isIos) {
+        const modal = document.getElementById('ios-install-modal');
+        if (modal) modal.style.display = 'flex';
+      } else {
+        alert('لتثبيت تطبيق ريلاس: افتحي خيارات المتصفح (⋮) واختاري "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"');
+      }
+    }
+
+    function closeIosInstallModal() {
+      const modal = document.getElementById('ios-install-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    if (isIos && !isStandalone) {
+      setTimeout(() => {
+        const btnContainer = document.getElementById('pwa-install-container');
+        if (btnContainer) btnContainer.style.display = 'block';
+      }, 2500);
+    }
+
+    // ===== CAPACITOR NATIVE INTEGRATION =====
+    if (window.Capacitor) {
+      document.addEventListener('DOMContentLoaded', () => {
+        const btnContainer = document.getElementById('pwa-install-container');
+        if (btnContainer) btnContainer.style.display = 'none';
+
+        if (window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+          window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+            const quickModal = document.getElementById('quickViewModal');
+            const mobileMenu = document.getElementById('mobileMenuDrawer');
+
+            if (quickModal && !quickModal.classList.contains('hidden')) {
+              quickModal.classList.add('hidden');
+              quickModal.classList.remove('flex');
+            } else if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+              mobileMenu.classList.add('hidden');
+            } else if (canGoBack) {
+              window.history.back();
+            } else {
+              window.Capacitor.Plugins.App.exitApp();
+            }
+          });
+        }
+      });
+    }
+  </script>
 </body>
 </html>

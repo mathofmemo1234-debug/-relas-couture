@@ -1,6 +1,6 @@
 /**
  * Relas Couture - Firebase & Local Storage Service
- * خدمة إدارة قواعد البيانات والتخزين السحابي / المحلي لمتجر ريلاس
+ * خدمة إدارة قواعد البيانات والتخزين السحابي / المحلي لمتجر ريلاس للأزياء
  */
 
 const STORAGE_KEYS = {
@@ -23,6 +23,9 @@ class RelasDataService {
   constructor() {
     this.db = null;
     this.isFirebaseReady = false;
+    this.connectionStatus = 'offline'; // 'connected' | 'checking' | 'error' | 'offline'
+    this.lastError = null;
+    this.statusListeners = [];
     this.init();
   }
 
@@ -34,6 +37,23 @@ class RelasDataService {
     this.initFirebaseFromStorage();
   }
 
+  onStatusChange(callback) {
+    if (typeof callback === 'function') {
+      this.statusListeners.push(callback);
+      callback(this.connectionStatus, this.isFirebaseReady, this.lastError);
+    }
+  }
+
+  notifyStatusListeners() {
+    this.statusListeners.forEach(cb => {
+      try {
+        cb(this.connectionStatus, this.isFirebaseReady, this.lastError);
+      } catch (err) {
+        console.error("خطأ في مستمع حالة Firebase:", err);
+      }
+    });
+  }
+
   ensureLocalDefaults() {
     if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(window.INITIAL_SETTINGS || {}));
@@ -42,7 +62,6 @@ class RelasDataService {
       localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(window.INITIAL_DRESSES || []));
     }
     if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
-      // عينة طلب أولي للتجربة
       const demoOrders = [
         {
           id: "ORD-2026-001",
@@ -53,7 +72,7 @@ class RelasDataService {
           dressModelRef: "Aurora Bridal Gown",
           eventDate: "2026-11-20",
           notes: "تعديل طول الذيل ليكون 2.5 متر، وإضافة تطريز دانتيل خفيف على الطرحة.",
-          status: "in_progress", // new, under_review, in_progress, fitting_ready, completed
+          status: "in_progress",
           statusText: "جاري التفصيل",
           statusColor: "purple",
           measurements: {
@@ -85,18 +104,201 @@ class RelasDataService {
       if (savedConfig) {
         config = JSON.parse(savedConfig);
       }
+
       if (config && config.apiKey && config.projectId && window.firebase) {
         if (!firebase.apps.length) {
           firebase.initializeApp(config);
         }
         this.db = firebase.firestore();
         this.isFirebaseReady = true;
-        console.log("💎 تم الاتصال بنجاح بقاعدة بيانات Firebase Firestore:", config.projectId);
+        this.connectionStatus = 'connected';
+        this.lastError = null;
+        console.log("💎 تم تحميل إعدادات Firebase Firestore:", config.projectId);
+        this.notifyStatusListeners();
+        
+        // التحقق في الخلفية وتهيئة البيانات الأولية إذا كانت القاعدة فارغة
+        setTimeout(() => {
+          this.autoSeedIfEmpty();
+        }, 1500);
+      } else {
+        this.isFirebaseReady = false;
+        this.connectionStatus = 'offline';
+        this.notifyStatusListeners();
       }
     } catch (e) {
       console.warn("تعذر الاتصال بـ Firebase، سيتم استخدام التخزين المحلي السريع.", e);
       this.isFirebaseReady = false;
+      this.connectionStatus = 'error';
+      this.lastError = e.message;
+      this.notifyStatusListeners();
     }
+  }
+
+  // --- اختبار الاتصال المباشر بالسحابة ---
+  async testConnection() {
+    if (!this.isFirebaseReady || !this.db) {
+      return {
+        success: false,
+        message: "Firebase غير مهيأ. يرجى إدخال مفاتيح المشروع وحفظها أولاً."
+      };
+    }
+
+    const startTime = Date.now();
+    try {
+      // تجربة كتابة وقراءة وثيقة فحص في مجموعة _ping
+      const pingRef = this.db.collection("_ping").doc("status");
+      await pingRef.set({
+        lastPing: new Date().toISOString(),
+        client: "Relas Admin Panel",
+        status: "ok"
+      });
+
+      const snap = await pingRef.get();
+      const latency = Date.now() - startTime;
+
+      if (snap.exists) {
+        this.connectionStatus = 'connected';
+        this.lastError = null;
+        this.notifyStatusListeners();
+        return {
+          success: true,
+          latency,
+          message: `الاتصال بقاعدة بيانات Firebase Firestore سليم ومفعّل بنجاح! (زمن الاستجابة: ${latency}ms)`
+        };
+      } else {
+        throw new Error("لم يتم العثور على وثيقة الاستجابة");
+      }
+    } catch (err) {
+      this.lastError = err.message;
+      this.notifyStatusListeners();
+
+      let reason = err.message;
+      if (err.code === 'permission-denied') {
+        reason = "تم رفض الإذن (Permission Denied). يرجى التأكد من تفعيل قواعد Firestore (Security Rules) في لوحة تحكم Firebase واختيار Test Mode أو السماح بالقراءة والكتابة.";
+      } else if (err.code === 'unavailable') {
+        reason = "تعذر الوصول إلى الخادم السحابي. يرجى التحقق من اتصال الإنترنت.";
+      }
+
+      return {
+        success: false,
+        code: err.code,
+        message: `فشل الاتصال بـ Firebase: ${reason}`
+      };
+    }
+  }
+
+  // --- المزامنة والتهيئة التلقائية / اليدوية للبيانات ---
+  async autoSeedIfEmpty() {
+    if (!this.isFirebaseReady || !this.db) return;
+    try {
+      const snap = await this.db.collection("dresses").limit(1).get();
+      if (snap.empty) {
+        console.log("قاعدة بيانات الفساتين فارغة في Firebase، جاري رفع البيانات الأولية تلقائياً...");
+        await this.seedInitialData(false);
+      }
+    } catch (err) {
+      console.warn("تنبيه أثناء فحص البيانات الأولية في Firebase:", err.message);
+    }
+  }
+
+  async seedInitialData(force = false) {
+    if (!this.isFirebaseReady || !this.db) {
+      throw new Error("قاعدة بيانات Firebase غير متصلة");
+    }
+
+    let insertedDresses = 0;
+    let insertedSettings = false;
+    let insertedOrders = 0;
+
+    // 1. رفع الإعدادات
+    try {
+      const settingsDoc = await this.db.collection("settings").doc("general").get();
+      if (!settingsDoc.exists || force) {
+        const localSettings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+        const settingsToSave = Object.keys(localSettings).length > 0 ? localSettings : (window.INITIAL_SETTINGS || {});
+        await this.db.collection("settings").doc("general").set(settingsToSave, { merge: true });
+        insertedSettings = true;
+      }
+    } catch (e) {
+      console.error("خطأ رفع الإعدادات:", e);
+    }
+
+    // 2. رفع الفساتين
+    try {
+      const dressesSnap = await this.db.collection("dresses").get();
+      if (dressesSnap.empty || force) {
+        const localDresses = JSON.parse(localStorage.getItem(STORAGE_KEYS.DRESSES) || '[]');
+        const list = localDresses.length > 0 ? localDresses : (window.INITIAL_DRESSES || []);
+        
+        for (const dress of list) {
+          await this.db.collection("dresses").doc(dress.id).set(dress);
+          insertedDresses++;
+        }
+      }
+    } catch (e) {
+      console.error("خطأ رفع الفساتين:", e);
+    }
+
+    // 3. رفع الطلبات الأولية إذا كانت فارغة
+    try {
+      const ordersSnap = await this.db.collection("orders").limit(1).get();
+      if (ordersSnap.empty || force) {
+        const localOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
+        for (const ord of localOrders) {
+          await this.db.collection("orders").doc(ord.id).set(ord);
+          insertedOrders++;
+        }
+      }
+    } catch (e) {
+      console.error("خطأ رفع الطلبات:", e);
+    }
+
+    return {
+      success: true,
+      insertedDresses,
+      insertedSettings,
+      insertedOrders,
+      message: `تمت مزامنة ورفع البيانات بنجاح: ${insertedDresses} فستان، إعدادات المتجر، و ${insertedOrders} طلب.`
+    };
+  }
+
+  // مزامنة كاملة من التخزين المحلي إلى Firebase
+  async syncLocalToFirebase() {
+    return await this.seedInitialData(true);
+  }
+
+  // سحب كامل البيانات من Firebase إلى التخزين المحلي
+  async syncFirebaseToLocal() {
+    if (!this.isFirebaseReady || !this.db) {
+      throw new Error("قاعدة بيانات Firebase غير متصلة");
+    }
+
+    // 1. جلب الإعدادات
+    const setDoc = await this.db.collection("settings").doc("general").get();
+    if (setDoc.exists) {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(setDoc.data()));
+    }
+
+    // 2. جلب الفساتين
+    const dressesSnap = await this.db.collection("dresses").get();
+    const dresses = [];
+    dressesSnap.forEach(doc => dresses.push({ id: doc.id, ...doc.data() }));
+    if (dresses.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(dresses));
+    }
+
+    // 3. جلب الطلبات
+    const ordersSnap = await this.db.collection("orders").get();
+    const orders = [];
+    ordersSnap.forEach(doc => orders.push({ id: doc.id, ...doc.data() }));
+    if (orders.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+    }
+
+    return {
+      dressesCount: dresses.length,
+      ordersCount: orders.length
+    };
   }
 
   // --- دوال الإعدادات العامة والتواصل ---
@@ -106,7 +308,9 @@ class RelasDataService {
       if (this.isFirebaseReady && this.db) {
         const doc = await this.db.collection("settings").doc("general").get();
         if (doc.exists) {
-          return { ...window.INITIAL_SETTINGS, ...doc.data() };
+          const cloudData = { ...window.INITIAL_SETTINGS, ...doc.data() };
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(cloudData));
+          return cloudData;
         }
       }
     } catch (e) {
@@ -163,7 +367,7 @@ class RelasDataService {
     dresses.unshift(newDress);
     localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(dresses));
 
-    // حفظ سحابي في Firebase إذا توفر
+    // حفظ سحابي في Firebase
     try {
       if (this.isFirebaseReady && this.db) {
         await this.db.collection("dresses").doc(id).set(newDress);
@@ -322,6 +526,8 @@ class RelasDataService {
     if (!config) {
       localStorage.removeItem(STORAGE_KEYS.FIREBASE_CONFIG);
       this.isFirebaseReady = false;
+      this.connectionStatus = 'offline';
+      this.notifyStatusListeners();
       return false;
     }
     localStorage.setItem(STORAGE_KEYS.FIREBASE_CONFIG, JSON.stringify(config));
@@ -333,7 +539,6 @@ class RelasDataService {
   async generateWhatsAppLink(message, customPhone = null) {
     const settings = await this.getSettings();
     let phone = customPhone || settings.whatsappNumber || "966551234567";
-    // تنظيف الرقم من أي مسافات أو رموز زائفة
     phone = phone.replace(/[^0-9]/g, '');
     const encoded = encodeURIComponent(message);
     return `https://wa.me/${phone}?text=${encoded}`;

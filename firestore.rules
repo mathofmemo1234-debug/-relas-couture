@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // قواعد قراءة وكتابة الفساتين (Dresses)
+    match /dresses/{dressId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // قواعد طلبات القياسات والتفصيل (Orders)
+    match /orders/{orderId} {
+      allow read, create, update, delete: if true;
+    }
+    
+    // قواعد الإعدادات العامة والمتجر (Settings)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // وثيقة فحص الاتصال (Ping Test)
+    match /_ping/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

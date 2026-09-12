@@ -2,8 +2,21 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>لوحة التحكم والإدارة | ريلاس لفساتين السهرة والزفاف - Relas Admin</title>
+
+  <!-- Mobile & PWA Settings -->
+  <meta name="theme-color" content="#141414">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="لوحة ريلاس">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- Icons & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -334,44 +347,71 @@
           </form>
         </div>
 
-        <!-- إعدادات قاعدة بيانات Firebase Firestore -->
-        <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm">
-          <div class="flex items-center gap-2 mb-4 border-b pb-3">
-            <span class="text-2xl">🔥</span>
-            <div>
-              <h3 class="font-bold text-lg text-gray-900">ربط قاعدة بيانات Firebase Firestore (سحابياً)</h3>
-              <p class="text-xs text-gray-500">
-                يمكنكِ إدخال مفاتيح مشروع Firebase الخاص بكِ هنا للمزامنة السحابية الفورية. (الموقع يعمل تلقائياً وبأمان في وضع التخزين المحلي إذا تركت فارغة).
-              </p>
+        <!-- إعدادات وإدارة قاعدة بيانات Firebase Firestore -->
+        <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">🔥</span>
+              <div>
+                <h3 class="font-bold text-lg text-gray-900">إدارة وربط قاعدة بيانات Firebase Firestore</h3>
+                <p class="text-xs text-gray-500">
+                  مزامنة سحابية فورية لكافة الفساتين والطلبات والإعدادات عبر السحابة مع دعم التخزين المحلي الآمن.
+                </p>
+              </div>
+            </div>
+            
+            <!-- بطاقة الحالة اللحظية -->
+            <div id="dbLiveStatusBadge" class="flex items-center gap-2 bg-neutral-100 px-3.5 py-1.5 rounded-full border border-gray-200 text-xs font-bold">
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+              <span>جاري التحقق من الحالة...</span>
             </div>
           </div>
 
+          <!-- شريط الإجراءات السريعة لقاعدة البيانات -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+            <button type="button" id="btnTestDbConnection" class="w-full py-2.5 px-4 bg-black text-white hover:bg-neutral-800 text-xs font-bold rounded-lg transition shadow flex items-center justify-center gap-2">
+              <span>⚡ اختبار الاتصال المباشر</span>
+            </button>
+            <button type="button" id="btnSeedInitialData" class="w-full py-2.5 px-4 bg-amber-600 text-white hover:bg-amber-700 text-xs font-bold rounded-lg transition shadow flex items-center justify-center gap-2">
+              <span>🚀 رفع وتهيئة البيانات الأولية</span>
+            </button>
+            <button type="button" id="btnPullCloudData" class="w-full py-2.5 px-4 bg-white text-gray-800 hover:bg-gray-100 border border-gray-300 text-xs font-bold rounded-lg transition flex items-center justify-center gap-2">
+              <span>📥 استيراد من السحابة</span>
+            </button>
+          </div>
+
+          <!-- صندوق رسائل الفحص والاختبار -->
+          <div id="dbTestResultBox" class="hidden text-xs p-3.5 rounded-lg border leading-relaxed"></div>
+
+          <!-- استمارة مفاتيح مشروع Firebase -->
           <form id="firebaseConfigForm" class="space-y-4">
+            <h4 class="font-bold text-xs text-gray-700 uppercase tracking-wider">مفاتيح الربط لمشروع Firebase:</h4>
+            
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">API Key</label>
-                <input type="text" id="fbApiKey" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+                <input type="text" id="fbApiKey" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-amber-600 bg-white" placeholder="AIzaSy..." />
               </div>
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Project ID</label>
-                <input type="text" id="fbProjectId" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+                <input type="text" id="fbProjectId" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-amber-600 bg-white" placeholder="relas-couture" />
               </div>
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Auth Domain</label>
-                <input type="text" id="fbAuthDomain" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+                <input type="text" id="fbAuthDomain" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-amber-600 bg-white" placeholder="relas-couture.firebaseapp.com" />
               </div>
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Storage Bucket</label>
-                <input type="text" id="fbStorageBucket" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+                <input type="text" id="fbStorageBucket" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-amber-600 bg-white" placeholder="relas-couture.firebasestorage.app" />
               </div>
               <div class="sm:col-span-2">
                 <label class="block text-xs font-bold text-gray-700 mb-1">App ID</label>
-                <input type="text" id="fbAppId" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none" />
+                <input type="text" id="fbAppId" dir="ltr" class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-amber-600 bg-white" placeholder="1:52523757770:web:..." />
               </div>
             </div>
 
-            <div class="flex gap-3 pt-2">
-              <button type="submit" class="btn-luxury-primary text-xs py-2.5 px-6 font-bold">
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button type="submit" class="btn-luxury-gold text-xs py-2.5 px-6 font-bold shadow">
                 حفظ وتفعيل Firebase 🔥
               </button>
               <button type="button" onclick="clearFirebaseKeys()" class="btn-luxury-outline text-xs py-2.5 px-4">
@@ -379,6 +419,28 @@
               </button>
             </div>
           </form>
+
+          <!-- قسم قواعد أمان Firestore ومساعد الإعداد -->
+          <div class="border-t pt-4 space-y-3">
+            <details class="text-xs bg-amber-50/60 p-4 rounded-xl border border-amber-200 cursor-pointer">
+              <summary class="font-bold text-amber-950 flex items-center justify-between">
+                <span>🛡️ قواعد أمان Firestore Database (Security Rules) وطريقة تفعيلها</span>
+                <span class="text-amber-800 text-[11px] underline">عرض القواعد 📋</span>
+              </summary>
+              <div class="mt-3 space-y-2 text-gray-700">
+                <p>لتشغيل قاعدة البيانات دون أي رفض للصلاحيات، تأكدي من وضع القواعد التالية في تبويب <strong>Rules</strong> داخل مشروع Firebase:</p>
+                <pre class="bg-neutral-900 text-amber-300 p-3 rounded-lg font-mono text-[11px] overflow-x-auto text-left" dir="ltr">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+                <p class="text-[11px] text-gray-500">تم حفظ ملف القواعد أيضاً في جذر المشروع باسم <code>firestore.rules</code>.</p>
+              </div>
+            </details>
+          </div>
         </div>
 
       </div>
@@ -450,9 +512,49 @@
             </label>
           </div>
 
-          <div class="sm:col-span-2">
-            <label class="block text-xs font-bold text-gray-700 mb-1">روابط الصور (رابط في كل سطر)</label>
-            <textarea id="dressInputImages" rows="3" placeholder="https://images.unsplash.com/photo-..." class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none"></textarea>
+          <!-- قسم رفع الصور المباشر والكاتالوج -->
+          <div class="sm:col-span-2 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-gray-800">
+                صور الفستان (رفع مباشر من الجهاز أو الهاتف) 📸 *
+              </label>
+              <span id="dressImageCountBadge" class="text-[11px] text-amber-700 font-bold">0 صور مختارة</span>
+            </div>
+
+            <!-- منطقة السحب والإفلات أو النقر للاختيار -->
+            <div id="dressImageDropzone" class="image-upload-dropzone" onclick="document.getElementById('dressFileInput').click()">
+              <input type="file" id="dressFileInput" accept="image/*" multiple class="hidden" />
+              <div class="flex flex-col items-center justify-center gap-1 text-gray-600">
+                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-2xl text-amber-800 mb-1 shadow-sm">
+                  📤
+                </div>
+                <p class="text-xs font-bold text-gray-800">
+                  انقري هنا أو اسحبي الصور لرفعها مباشرة من الجهاز / الاستديو
+                </p>
+                <p class="text-[11px] text-gray-500">
+                  يدعم صور JPG, PNG, WEBP — يتم ضغطها وتحسينها تلقائياً لأقصى سرعة
+                </p>
+              </div>
+            </div>
+
+            <!-- شريط حالة التحميل والمعالجة -->
+            <div id="imageUploadProgress" class="hidden text-xs text-amber-800 font-bold bg-amber-50 p-2 rounded border border-amber-200 text-center animate-pulse">
+              ⏳ جاري ضغط ومعالجة الصور المرفوعة...
+            </div>
+
+            <!-- شبكة استعراض وحذف الصور المصغرة -->
+            <div id="dressImagesPreviewGrid" class="image-previews-grid"></div>
+
+            <!-- خيار إدخال الروابط يدوياً (للتوافق والنسخ واللصق) -->
+            <details class="text-xs text-gray-500 pt-1">
+              <summary class="cursor-pointer hover:text-amber-800 font-medium select-none">
+                🔗 أو إدخال روابط صور سحابية يدوياً (اختياري)
+              </summary>
+              <div class="mt-2">
+                <textarea id="dressInputImages" rows="2" placeholder="https://images.unsplash.com/photo-..." class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none"></textarea>
+                <p class="text-[10px] text-gray-400 mt-1">يمكنكِ لصق رابط صورة في كل سطر إذا رغبتِ في الاعتماد على صور خارجية.</p>
+              </div>
+            </details>
           </div>
 
           <div class="sm:col-span-2">
@@ -521,6 +623,34 @@
         document.getElementById('fbAppId').value = '';
         alert("تم مسح المفاتيح بنجاح.");
       }
+    }
+
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    // Capacitor Hardware Back Button
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+        const dressModal = document.getElementById('dressFormModal');
+        const orderModal = document.getElementById('orderDetailsModal');
+        const tailorModal = document.getElementById('tailorCardModal');
+
+        if (dressModal && !dressModal.classList.contains('hidden')) {
+          dressModal.classList.add('hidden');
+        } else if (orderModal && !orderModal.classList.contains('hidden')) {
+          orderModal.classList.add('hidden');
+        } else if (tailorModal && !tailorModal.classList.contains('hidden')) {
+          tailorModal.classList.add('hidden');
+        } else if (canGoBack) {
+          window.history.back();
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
     }
   </script>
 </body>

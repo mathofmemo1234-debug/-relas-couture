@@ -2,9 +2,22 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>استوديو أخذ القياسات التفاعلي بالطلب | ريلاس للأزياء - Relas Couture</title>
   <meta name="description" content="استوديو تفاعلي ذكي لأخذ القياسات الـ 13 بدقة متناهية لفساتين السهرة والزفاف في دار ريلاس للأزياء مع مانيكان تفاعلي وبطاقة مشغل كلاسيكية.">
+
+  <!-- Mobile & PWA Settings -->
+  <meta name="theme-color" content="#141414">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ريلاس للأزياء">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- Icons & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -461,6 +474,27 @@
         document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
       }
     });
+
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    // Capacitor Hardware Back Button
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+        const tailorModal = document.getElementById('tailorCardModal');
+        if (tailorModal && !tailorModal.classList.contains('hidden')) {
+          tailorModal.classList.add('hidden');
+        } else if (canGoBack) {
+          window.history.back();
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+    }
   </script>
 </body>
 </html>

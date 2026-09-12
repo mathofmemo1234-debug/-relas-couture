@@ -170,9 +170,136 @@ function bindDressModals() {
   const closeBtn = document.getElementById('closeDressModalBtn');
   const form = document.getElementById('dressForm');
 
+  // مصفوفة الصور الحالية للفستان المفتوح
+  window.currentDressImages = [];
+
+  window.renderDressImagePreviews = function() {
+    const grid = document.getElementById('dressImagesPreviewGrid');
+    const countBadge = document.getElementById('dressImageCountBadge');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    const images = window.currentDressImages || [];
+    if (countBadge) {
+      countBadge.textContent = `${images.length} صور مختارة`;
+    }
+
+    images.forEach((imgUrl, index) => {
+      const item = document.createElement('div');
+      item.className = 'image-preview-item';
+      item.innerHTML = `
+        <img src="${imgUrl}" alt="صورة ${index + 1}" loading="lazy" />
+        <button type="button" class="image-preview-remove" title="حذف الصورة" onclick="window.removeDressImage(${index})">✕</button>
+        <span class="image-preview-badge">${index === 0 ? 'الرئيسية ⭐' : `${index + 1}`}</span>
+      `;
+      grid.appendChild(item);
+    });
+  };
+
+  window.removeDressImage = function(index) {
+    if (window.currentDressImages) {
+      window.currentDressImages.splice(index, 1);
+      window.renderDressImagePreviews();
+    }
+  };
+
+  // دالة ضغط الصور العالية الدقة وتصغير حجمها لسرعة فائقة
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1200;
+          let w = img.width;
+          let h = img.height;
+
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          // تصدير كـ JPEG جودة 0.85 لخفة الحجم ووضوح التفاصيل
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          resolve(dataUrl);
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFilesUpload(files) {
+    if (!files || files.length === 0) return;
+    const progress = document.getElementById('imageUploadProgress');
+    if (progress) progress.classList.remove('hidden');
+
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue;
+      try {
+        const compressed = await compressImage(file);
+        window.currentDressImages.push(compressed);
+      } catch (err) {
+        console.error('Error processing image:', err);
+      }
+    }
+
+    if (progress) progress.classList.add('hidden');
+    window.renderDressImagePreviews();
+  }
+
+  // ربط إدخال الملفات والسحب والإفلات
+  const fileInput = document.getElementById('dressFileInput');
+  const dropzone = document.getElementById('dressImageDropzone');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      handleFilesUpload(e.target.files);
+      fileInput.value = '';
+    });
+  }
+
+  if (dropzone) {
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer && e.dataTransfer.files) {
+        handleFilesUpload(e.dataTransfer.files);
+      }
+    });
+  }
+
   if (addBtn && modal) {
     addBtn.addEventListener('click', () => {
       form.reset();
+      window.currentDressImages = [];
+      window.renderDressImagePreviews();
       document.getElementById('dressFormId').value = '';
       document.getElementById('dressModalTitle').textContent = 'إضافة فستان وتصميم جديد ✨';
       modal.classList.remove('hidden');
@@ -207,10 +334,22 @@ function bindDressModals() {
       const badge = document.getElementById('dressInputBadge').value.trim();
       const isNew = document.getElementById('dressInputIsNew').checked;
       
-      const imagesText = document.getElementById('dressInputImages').value.trim();
-      const images = imagesText ? imagesText.split('\n').map(s => s.trim()).filter(Boolean) : [
-        'https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=1000&q=85'
-      ];
+      // دمج الصور المرفوعة مباشرة مع أي روابط أدخلت في خانة الروابط
+      const imagesText = document.getElementById('dressInputImages') ? document.getElementById('dressInputImages').value.trim() : '';
+      const textImages = imagesText ? imagesText.split('\n').map(s => s.trim()).filter(Boolean) : [];
+      
+      let finalImages = [...(window.currentDressImages || [])];
+      for (const tImg of textImages) {
+        if (!finalImages.includes(tImg)) {
+          finalImages.push(tImg);
+        }
+      }
+
+      if (finalImages.length === 0) {
+        finalImages = [
+          'https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=1000&q=85'
+        ];
+      }
 
       const dressData = {
         title,
@@ -224,7 +363,7 @@ function bindDressModals() {
         neckline,
         badge,
         isNew,
-        images
+        images: finalImages
       };
 
       if (dressId) {
@@ -259,8 +398,15 @@ window.openEditDressModal = async function(id) {
   document.getElementById('dressInputNeckline').value = dress.neckline || '';
   document.getElementById('dressInputBadge').value = dress.badge || '';
   document.getElementById('dressInputIsNew').checked = !!dress.isNew;
-  document.getElementById('dressInputImages').value = dress.images ? dress.images.join('\n') : '';
+  
+  if (document.getElementById('dressInputImages')) {
+    document.getElementById('dressInputImages').value = '';
+  }
 
+  // تحميل صور الفستان الحالية في المعرض المصغر
+  window.currentDressImages = dress.images && Array.isArray(dress.images) ? [...dress.images] : [];
+  window.renderDressImagePreviews();
+  
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 };
@@ -484,7 +630,7 @@ function bindSettingsEvents() {
   // حفظ مفاتيح Firebase
   const fbForm = document.getElementById('firebaseConfigForm');
   if (fbForm) {
-    fbForm.addEventListener('submit', (e) => {
+    fbForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const apiKey = document.getElementById('fbApiKey').value.trim();
       const authDomain = document.getElementById('fbAuthDomain').value.trim();
@@ -501,25 +647,149 @@ function bindSettingsEvents() {
 
       const config = { apiKey, authDomain, projectId, storageBucket, appId };
       window.relasDataService.saveFirebaseConfig(config);
-      alert("✅ تم حفظ إعدادات Firebase! جاري الربط السحابي.");
+      alert("✅ تم حفظ إعدادات Firebase! جاري الفحص والربط السحابي.");
       checkFirebaseStatus();
+      
+      // تجربة فحص فوري
+      await testFirebaseConnectionUi();
     });
   }
+
+  // زر اختبار الاتصال المباشر
+  const btnTest = document.getElementById('btnTestDbConnection');
+  if (btnTest) {
+    btnTest.addEventListener('click', async () => {
+      await testFirebaseConnectionUi();
+    });
+  }
+
+  // زر رفع وتهيئة البيانات الأولية
+  const btnSeed = document.getElementById('btnSeedInitialData');
+  if (btnSeed) {
+    btnSeed.addEventListener('click', async () => {
+      if (!confirm("هل ترغبين في رفع كافة الفساتين والإعدادات والطلبات إلى قاعدة بيانات Firebase Firestore؟")) {
+        return;
+      }
+      btnSeed.disabled = true;
+      btnSeed.innerHTML = `<span>جاري الرفع... ⏳</span>`;
+      try {
+        const res = await window.relasDataService.seedInitialData(true);
+        showDbResultBox(true, `🚀 ${res.message}`);
+        // إعادة تحميل الجداول والإحصائيات
+        allDresses = await window.relasDataService.getDresses();
+        allOrders = await window.relasDataService.getOrders();
+        renderDressesTable();
+        renderOrdersTable();
+        updateStatsCards();
+      } catch (err) {
+        showDbResultBox(false, `❌ تعذر رفع البيانات إلى Firebase: ${err.message}`);
+      } finally {
+        btnSeed.disabled = false;
+        btnSeed.innerHTML = `<span>🚀 رفع وتهيئة البيانات الأولية</span>`;
+      }
+    });
+  }
+
+  // زر استيراد وتحديث البيانات من السحابة
+  const btnPull = document.getElementById('btnPullCloudData');
+  if (btnPull) {
+    btnPull.addEventListener('click', async () => {
+      btnPull.disabled = true;
+      btnPull.innerHTML = `<span>جاري الاستيراد... ⏳</span>`;
+      try {
+        const res = await window.relasDataService.syncFirebaseToLocal();
+        showDbResultBox(true, `📥 تم استيراد وتحديث البيانات من السحابة بنجاح (${res.dressesCount} فستان، ${res.ordersCount} طلب).`);
+        allDresses = await window.relasDataService.getDresses();
+        allOrders = await window.relasDataService.getOrders();
+        storeSettings = await window.relasDataService.getSettings();
+        renderDressesTable();
+        renderOrdersTable();
+        updateStatsCards();
+        populateSettingsForm();
+      } catch (err) {
+        showDbResultBox(false, `❌ تعذر الاستيراد من السحابة: ${err.message}`);
+      } finally {
+        btnPull.disabled = false;
+        btnPull.innerHTML = `<span>📥 استيراد من السحابة</span>`;
+      }
+    });
+  }
+
+  // الاستماع لتغييرات حالة Firebase
+  window.relasDataService.onStatusChange(() => {
+    checkFirebaseStatus();
+  });
+}
+
+async function testFirebaseConnectionUi() {
+  const btnTest = document.getElementById('btnTestDbConnection');
+  if (btnTest) {
+    btnTest.disabled = true;
+    btnTest.innerHTML = `<span>جاري الفحص... ⚡</span>`;
+  }
+
+  const result = await window.relasDataService.testConnection();
+  showDbResultBox(result.success, result.message);
+  checkFirebaseStatus();
+
+  if (btnTest) {
+    btnTest.disabled = false;
+    btnTest.innerHTML = `<span>⚡ اختبار الاتصال المباشر</span>`;
+  }
+}
+
+function showDbResultBox(isSuccess, message) {
+  const box = document.getElementById('dbTestResultBox');
+  if (!box) return;
+
+  box.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-900', 'border-emerald-200', 'bg-red-50', 'text-red-900', 'border-red-200');
+  
+  if (isSuccess) {
+    box.classList.add('bg-emerald-50', 'text-emerald-900', 'border-emerald-200');
+  } else {
+    box.classList.add('bg-red-50', 'text-red-900', 'border-red-200');
+  }
+
+  box.innerHTML = message;
 }
 
 function checkFirebaseStatus() {
   const statusEl = document.getElementById('firebaseStatusIndicator');
-  if (!statusEl) return;
+  const badgeEl = document.getElementById('dbLiveStatusBadge');
 
-  if (window.relasDataService.isFirebaseReady) {
-    statusEl.innerHTML = `
-      <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
-      <span class="text-xs font-bold text-emerald-700">قاعدة بيانات Firebase Firestore متصلة ومفعّلة سحابياً 🟢</span>
-    `;
-  } else {
-    statusEl.innerHTML = `
-      <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
-      <span class="text-xs font-bold text-amber-800">يعمل بنظام التخزين المحلي الآمن السريع (LocalStorage) 🟡</span>
-    `;
+  const isReady = window.relasDataService.isFirebaseReady;
+  const status = window.relasDataService.connectionStatus;
+  const lastErr = window.relasDataService.lastError;
+
+  if (statusEl) {
+    if (isReady && status === 'connected') {
+      statusEl.innerHTML = `
+        <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+        <span class="text-xs font-bold text-emerald-400">قاعدة بيانات Firebase متصلة سحابياً 🟢</span>
+      `;
+    } else if (status === 'error') {
+      statusEl.innerHTML = `
+        <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+        <span class="text-xs font-bold text-red-400">تنبيه في اتصال Firebase 🔴</span>
+      `;
+    } else {
+      statusEl.innerHTML = `
+        <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
+        <span class="text-xs font-bold text-amber-400">نظام التخزين المحلي الآمن 🟡</span>
+      `;
+    }
+  }
+
+  if (badgeEl) {
+    if (isReady && status === 'connected') {
+      badgeEl.className = "flex items-center gap-2 bg-emerald-100 text-emerald-900 px-3.5 py-1.5 rounded-full border border-emerald-300 text-xs font-bold";
+      badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span><span>متصل ومفعّل سحابياً 🟢</span>`;
+    } else if (status === 'error') {
+      badgeEl.className = "flex items-center gap-2 bg-red-100 text-red-900 px-3.5 py-1.5 rounded-full border border-red-300 text-xs font-bold";
+      badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-red-600"></span><span>خطأ في الصلاحيات أو المفاتيح 🔴</span>`;
+    } else {
+      badgeEl.className = "flex items-center gap-2 bg-amber-100 text-amber-900 px-3.5 py-1.5 rounded-full border border-amber-300 text-xs font-bold";
+      badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span><span>تخزين محلي (LocalStorage) 🟡</span>`;
+    }
   }
 }

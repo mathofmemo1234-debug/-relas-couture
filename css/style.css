@@ -38,6 +38,12 @@ body {
   overflow-x: hidden;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 /* --- Luxury Typography --- */
@@ -508,3 +514,211 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0;
   }
 }
+
+/* ===== PWA INSTALL BUTTON & MODAL ===== */
+.pwa-install-container {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 998;
+  animation: bounceIn 0.8s ease;
+}
+.pwa-install-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #141414, #2a2520);
+  color: #FAF8F5;
+  border: 1.5px solid rgba(197, 168, 128, 0.6);
+  border-radius: 50px;
+  padding: 0.75rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: 'Tajawal', sans-serif;
+  box-shadow: 0 8px 30px rgba(20, 20, 20, 0.35);
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.pwa-install-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: #d4af37;
+  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4);
+}
+.pwa-install-icon {
+  font-size: 1.25rem;
+  animation: pulse-icon 1.5s infinite;
+}
+@keyframes pulse-icon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+@keyframes bounceIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.ios-install-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.ios-install-box {
+  background: #ffffff;
+  border: 1px solid rgba(197, 168, 128, 0.3);
+  border-radius: 24px;
+  padding: 2rem;
+  max-width: 420px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+  direction: rtl;
+}
+.ios-install-close {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: #737373;
+  cursor: pointer;
+}
+.ios-install-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.ios-app-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+.ios-app-title {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #141414;
+}
+.ios-app-desc {
+  font-size: 0.8rem;
+  color: #737373;
+}
+.ios-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+.ios-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #141414;
+  background: #faf8f5;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #ebdccb;
+}
+.ios-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #c5a880;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.ios-confirm-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: linear-gradient(135deg, #141414, #2a2520);
+  color: #FAF8F5;
+  border: 1px solid #c5a880;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: 'Tajawal', sans-serif;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.ios-confirm-btn:hover {
+  background: #000000;
+}
+
+/* ===== DIRECT IMAGE UPLOAD SYSTEM ===== */
+.image-upload-dropzone {
+  border: 2px dashed #d5b382;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  background: #fdfbf7;
+  cursor: pointer;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+.image-upload-dropzone:hover, .image-upload-dropzone.dragover {
+  border-color: #926e42;
+  background-color: #f9f4ea;
+}
+.image-previews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.image-preview-item {
+  position: relative;
+  aspect-ratio: 3/4;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #e7dfd5;
+  background: #141414;
+}
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-preview-remove {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+}
+.image-preview-remove:hover {
+  transform: scale(1.15);
+}
+.image-preview-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #c5a880;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
