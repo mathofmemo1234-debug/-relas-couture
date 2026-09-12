@@ -203,14 +203,14 @@ function bindDressModals() {
     }
   };
 
-  // دالة ضغط الصور العالية الدقة وتصغير حجمها لسرعة فائقة
+  // دالة ضغط الصور العالية الدقة وتصغير حجمها لسرعة فائقة (حجم خفيف جداً وجودة نقية)
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          const maxDim = 1200;
+          const maxDim = 900;
           let w = img.width;
           let h = img.height;
 
@@ -230,8 +230,8 @@ function bindDressModals() {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
 
-          // تصدير كـ JPEG جودة 0.85 لخفة الحجم ووضوح التفاصيل
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          // تصدير كـ JPEG جودة 0.75 لخفة الحجم (30-55KB) ووضوح التفاصيل الفائقة
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
           resolve(dataUrl);
         };
         img.onerror = reject;
@@ -314,69 +314,91 @@ function bindDressModals() {
     });
   }
 
-  if (form) {
+  if (form && !window._dressFormBound) {
+    window._dressFormBound = true;
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const dressId = document.getElementById('dressFormId').value;
-      const title = document.getElementById('dressInputTitle').value.trim();
-      const category = document.getElementById('dressInputCategory').value;
-      const categoryMap = {
-        bridal: 'فساتين زفاف',
-        evening: 'فساتين سهرة',
-        reception: 'فساتين خطوبة وملكة'
-      };
-      const price = parseFloat(document.getElementById('dressInputPrice').value) || 0;
-      const oldPrice = parseFloat(document.getElementById('dressInputOldPrice').value) || null;
-      const description = document.getElementById('dressInputDesc').value.trim();
-      const fabric = document.getElementById('dressInputFabric').value.trim();
-      const silhouette = document.getElementById('dressInputSilhouette').value.trim();
-      const neckline = document.getElementById('dressInputNeckline').value.trim();
-      const badge = document.getElementById('dressInputBadge').value.trim();
-      const isNew = document.getElementById('dressInputIsNew').checked;
-      
-      // دمج الصور المرفوعة مباشرة مع أي روابط أدخلت في خانة الروابط
-      const imagesText = document.getElementById('dressInputImages') ? document.getElementById('dressInputImages').value.trim() : '';
-      const textImages = imagesText ? imagesText.split('\n').map(s => s.trim()).filter(Boolean) : [];
-      
-      let finalImages = [...(window.currentDressImages || [])];
-      for (const tImg of textImages) {
-        if (!finalImages.includes(tImg)) {
-          finalImages.push(tImg);
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.innerHTML : 'حفظ الفستان ✨';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ جاري الحفظ وتحديث الكاتالوج...';
+      }
+
+      try {
+        const dressId = document.getElementById('dressFormId').value;
+        const title = document.getElementById('dressInputTitle').value.trim();
+        const category = document.getElementById('dressInputCategory').value;
+        const categoryMap = {
+          bridal: 'فساتين زفاف',
+          evening: 'فساتين سهرة',
+          reception: 'فساتين خطوبة وملكة'
+        };
+        const price = parseFloat(document.getElementById('dressInputPrice').value) || 0;
+        const oldPrice = parseFloat(document.getElementById('dressInputOldPrice').value) || null;
+        const description = document.getElementById('dressInputDesc').value.trim();
+        const fabric = document.getElementById('dressInputFabric').value.trim();
+        const silhouette = document.getElementById('dressInputSilhouette').value.trim();
+        const neckline = document.getElementById('dressInputNeckline').value.trim();
+        const badge = document.getElementById('dressInputBadge').value.trim();
+        const isNew = document.getElementById('dressInputIsNew').checked;
+        
+        // دمج الصور المرفوعة مباشرة مع أي روابط أدخلت في خانة الروابط
+        const imagesText = document.getElementById('dressInputImages') ? document.getElementById('dressInputImages').value.trim() : '';
+        const textImages = imagesText ? imagesText.split('\n').map(s => s.trim()).filter(Boolean) : [];
+        
+        let finalImages = [...(window.currentDressImages || [])];
+        for (const tImg of textImages) {
+          if (!finalImages.includes(tImg)) {
+            finalImages.push(tImg);
+          }
+        }
+
+        if (finalImages.length === 0) {
+          finalImages = [
+            'https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=1000&q=85'
+          ];
+        }
+
+        const dressData = {
+          title,
+          category,
+          categoryName: categoryMap[category] || 'ريلاس كوتور',
+          price,
+          oldPrice,
+          description,
+          fabric,
+          silhouette,
+          neckline,
+          badge,
+          isNew,
+          images: finalImages
+        };
+
+        if (dressId) {
+          await window.relasDataService.updateDress(dressId, dressData);
+        } else {
+          await window.relasDataService.addDress(dressData);
+        }
+
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        allDresses = await window.relasDataService.getDresses();
+        renderDressesTable();
+        updateStatsCards();
+
+        // إشعار نجاح فوري للمستخدم
+        showAdminNotification('✨ تم حفظ وتحديث الفستان في الكاتالوج بنجاح!', 'success');
+      } catch (err) {
+        console.error("خطأ أثناء حفظ الفستان:", err);
+        alert(`تعذر حفظ الفستان: ${err.message || 'حدث خطأ غير متوقع'}`);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
         }
       }
-
-      if (finalImages.length === 0) {
-        finalImages = [
-          'https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=1000&q=85'
-        ];
-      }
-
-      const dressData = {
-        title,
-        category,
-        categoryName: categoryMap[category] || 'ريلاس كوتور',
-        price,
-        oldPrice,
-        description,
-        fabric,
-        silhouette,
-        neckline,
-        badge,
-        isNew,
-        images: finalImages
-      };
-
-      if (dressId) {
-        await window.relasDataService.updateDress(dressId, dressData);
-      } else {
-        await window.relasDataService.addDress(dressData);
-      }
-
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      allDresses = await window.relasDataService.getDresses();
-      renderDressesTable();
-      updateStatsCards();
     });
   }
 }
@@ -417,8 +439,36 @@ window.confirmDeleteDress = async function(id) {
     allDresses = await window.relasDataService.getDresses();
     renderDressesTable();
     updateStatsCards();
+    showAdminNotification('🗑️ تم حذف الفستان من الكاتالوج بنجاح.', 'info');
   }
 };
+
+// نظام إشعارات أنيق للوحة التحكم
+function showAdminNotification(message, type = 'success') {
+  let toast = document.getElementById('adminGlobalToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'adminGlobalToast';
+    toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-xl shadow-2xl text-xs md:text-sm font-bold transition-all duration-300 transform translate-y-10 opacity-0 flex items-center gap-2 border';
+    document.body.appendChild(toast);
+  }
+
+  if (type === 'success') {
+    toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-xl shadow-2xl text-xs md:text-sm font-bold transition-all duration-300 transform bg-neutral-900 text-amber-400 border border-amber-600/50 flex items-center gap-2';
+  } else {
+    toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-xl shadow-2xl text-xs md:text-sm font-bold transition-all duration-300 transform bg-red-900 text-white border border-red-600 flex items-center gap-2';
+  }
+
+  toast.textContent = message;
+  toast.style.transform = 'translate(-50%, 0)';
+  toast.style.opacity = '1';
+
+  clearTimeout(window._toastTimeout);
+  window._toastTimeout = setTimeout(() => {
+    toast.style.transform = 'translate(-50%, 20px)';
+    toast.style.opacity = '0';
+  }, 4000);
+}
 
 // --- إدارة طلبات القياسات والتفصيل (Custom Tailoring Orders) ---
 

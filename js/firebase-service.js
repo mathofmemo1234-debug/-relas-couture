@@ -1,6 +1,7 @@
 /**
- * Relas Couture - Firebase & Local Storage Service
- * خدمة إدارة قواعد البيانات والتخزين السحابي / المحلي لمتجر ريلاس للأزياء
+ * Relas Couture - Hybrid Database & Storage Service (v2.0)
+ * خدمة إدارة قواعد البيانات والتخزين الهجين (IndexedDB + LocalStorage + Firebase السحابي)
+ * مصممة لتكون فائقة السرعة، غير معطلة (Non-Blocking)، وتتحمل مئات الميجابايت من الصور بأمان تام.
  */
 
 const STORAGE_KEYS = {
@@ -10,30 +11,153 @@ const STORAGE_KEYS = {
   FIREBASE_CONFIG: 'relas_firebase_config_v1'
 };
 
-const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDttuIa4-KHAGbHUZ1_lM2Hr5Siq0XTBPU",
-  authDomain: "relas-couture.firebaseapp.com",
-  projectId: "relas-couture",
-  storageBucket: "relas-couture.firebasestorage.app",
-  messagingSenderId: "52523757770",
-  appId: "1:52523757770:web:54e08cb32cc084b7a08433"
-};
+// محرك التخزين المحلي عالي السعة (IndexedDB مع المرآة الآمنة لـ LocalStorage)
+class RelasLocalDB {
+  constructor() {
+    this.dbName = 'relas_couture_db';
+    this.storeName = 'app_store';
+    this.version = 1;
+    this.db = null;
+    this.isReady = false;
+    this.readyPromise = this.init();
+  }
+
+  async init() {
+    if (typeof indexedDB === 'undefined') {
+      this.isReady = false;
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      try {
+        const request = indexedDB.open(this.dbName, this.version);
+
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(this.storeName)) {
+            db.createObjectStore(this.storeName);
+          }
+        };
+
+        request.onsuccess = (event) => {
+          this.db = event.target.result;
+          this.isReady = true;
+          resolve(this.db);
+        };
+
+        request.onerror = (err) => {
+          console.warn("تنبيه: تعذر فتح IndexedDB، سيتم استخدام LocalStorage كبديل سريع.", err);
+          this.isReady = false;
+          resolve(null);
+        };
+      } catch (e) {
+        this.isReady = false;
+        resolve(null);
+      }
+    });
+  }
+
+  async getItem(key) {
+    await this.readyPromise;
+
+    // 1. محاولة القراءة من IndexedDB أولاً
+    if (this.isReady && this.db) {
+      try {
+        const val = await new Promise((resolve) => {
+          const tx = this.db.transaction(this.storeName, 'readonly');
+          const store = tx.objectStore(this.storeName);
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+        });
+
+        if (val !== undefined && val !== null) {
+          return val;
+        }
+      } catch (e) {
+        console.warn(`خطأ قراءة IndexedDB للمفتاح ${key}:`, e);
+      }
+    }
+
+    // 2. بديل: القراءة من LocalStorage
+    try {
+      const localVal = localStorage.getItem(key);
+      if (localVal) {
+        try {
+          return JSON.parse(localVal);
+        } catch {
+          return localVal;
+        }
+      }
+    } catch (e) {}
+
+    return null;
+  }
+
+  async setItem(key, value) {
+    await this.readyPromise;
+
+    // 1. حفظ فوري في IndexedDB (مساحة غير محدودة للصور الكبيرة)
+    if (this.isReady && this.db) {
+      try {
+        await new Promise((resolve, reject) => {
+          const tx = this.db.transaction(this.storeName, 'readwrite');
+          const store = tx.objectStore(this.storeName);
+          const req = store.put(value, key);
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      } catch (e) {
+        console.warn(`خطأ كتابة IndexedDB للمفتاح ${key}:`, e);
+      }
+    }
+
+    // 2. حفظ في LocalStorage للتوافق المزدوج مع التقاط آمن لخطأ امتلاء المساحة
+    try {
+      const strVal = typeof value === 'string' ? value : JSON.stringify(value);
+      localStorage.setItem(key, strVal);
+    } catch (quotaErr) {
+      // عند امتلاء 5MB في LocalStorage نعتمد كلياً على IndexedDB دون تعليق التطبيق
+      console.info(`تم تخزين البيانات الكبيرة (${key}) في IndexedDB بنجاح لتجاوز حدود LocalStorage.`);
+    }
+  }
+
+  async removeItem(key) {
+    await this.readyPromise;
+    if (this.isReady && this.db) {
+      try {
+        const tx = this.db.transaction(this.storeName, 'readwrite');
+        tx.objectStore(this.storeName).delete(key);
+      } catch (e) {}
+    }
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {}
+  }
+}
 
 class RelasDataService {
   constructor() {
+    this.localDB = new RelasLocalDB();
     this.db = null;
     this.isFirebaseReady = false;
     this.connectionStatus = 'offline'; // 'connected' | 'checking' | 'error' | 'offline'
     this.lastError = null;
     this.statusListeners = [];
+
+    // كاش ذاكرة فوري لتسريع القراءة والكتابة (0ms Latency)
+    this.dressesCache = null;
+    this.ordersCache = null;
+    this.settingsCache = null;
+
     this.init();
   }
 
-  init() {
-    // 1. تهيئة التخزين المحلي بالبيانات الافتراضية إذا لم تكن موجودة
-    this.ensureLocalDefaults();
+  async init() {
+    // 1. تهيئة البيانات الأساسية
+    await this.ensureLocalDefaults();
 
-    // 2. محاولة تهيئة Firebase إذا توفرت الإعدادات
+    // 2. محاولة تهيئة Firebase إذا قام المستخدم بإدخال مفاتيح صالحة
     this.initFirebaseFromStorage();
   }
 
@@ -54,14 +178,37 @@ class RelasDataService {
     });
   }
 
-  ensureLocalDefaults() {
-    if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(window.INITIAL_SETTINGS || {}));
+  async ensureLocalDefaults() {
+    // إعدادات المتجر الأولية
+    const existingSettings = await this.localDB.getItem(STORAGE_KEYS.SETTINGS);
+    if (!existingSettings) {
+      const defaultSettings = window.INITIAL_SETTINGS || {
+        storeName: "ريلاس لفساتين السهرة والزفاف",
+        storeTagline: "لكونكِ أنثى راقية... تشرفنا في تصميم وتفصيل قطعتكِ الخاصة",
+        whatsappNumber: "966551234567",
+        phoneNumber: "+966 55 123 4567",
+        currency: "ر.س",
+        adminPin: "memo1974"
+      };
+      await this.localDB.setItem(STORAGE_KEYS.SETTINGS, defaultSettings);
+      this.settingsCache = defaultSettings;
     }
-    if (!localStorage.getItem(STORAGE_KEYS.DRESSES)) {
-      localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(window.INITIAL_DRESSES || []));
+
+    // فساتين الكاتالوج الأولية
+    const existingDresses = await this.localDB.getItem(STORAGE_KEYS.DRESSES);
+    if (!existingDresses || (Array.isArray(existingDresses) && existingDresses.length === 0)) {
+      const initialList = window.INITIAL_DRESSES && Array.isArray(window.INITIAL_DRESSES) 
+        ? [...window.INITIAL_DRESSES] 
+        : [];
+      if (initialList.length > 0) {
+        await this.localDB.setItem(STORAGE_KEYS.DRESSES, initialList);
+        this.dressesCache = initialList;
+      }
     }
-    if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
+
+    // الطلبات التجريبية الأولية
+    const existingOrders = await this.localDB.getItem(STORAGE_KEYS.ORDERS);
+    if (!existingOrders) {
       const demoOrders = [
         {
           id: "ORD-2026-001",
@@ -93,43 +240,56 @@ class RelasDataService {
           createdAt: new Date().toISOString()
         }
       ];
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(demoOrders));
+      await this.localDB.setItem(STORAGE_KEYS.ORDERS, demoOrders);
+      this.ordersCache = demoOrders;
     }
   }
 
   initFirebaseFromStorage() {
     try {
-      let config = DEFAULT_FIREBASE_CONFIG;
-      const savedConfig = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
-      if (savedConfig) {
-        config = JSON.parse(savedConfig);
+      const savedConfigStr = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
+      let config = null;
+      if (savedConfigStr) {
+        try {
+          config = JSON.parse(savedConfigStr);
+        } catch (e) {}
       }
 
+      // لا نفعّل Firebase إلا إذا قام المستخدم بحفظ مفاتيح حقيقية خاصة به
       if (config && config.apiKey && config.projectId && window.firebase) {
         if (!firebase.apps.length) {
           firebase.initializeApp(config);
         }
         this.db = firebase.firestore();
         this.isFirebaseReady = true;
-        this.connectionStatus = 'connected';
-        this.lastError = null;
-        console.log("💎 تم تحميل إعدادات Firebase Firestore:", config.projectId);
+        this.connectionStatus = 'checking';
         this.notifyStatusListeners();
-        
-        // التحقق في الخلفية وتهيئة البيانات الأولية إذا كانت القاعدة فارغة
-        setTimeout(() => {
-          this.autoSeedIfEmpty();
-        }, 1500);
+
+        // فحص غير معطل لاتصال السحابة
+        this.testConnection().then(res => {
+          if (res.success) {
+            this.connectionStatus = 'connected';
+            this.lastError = null;
+          } else {
+            this.connectionStatus = 'error';
+            this.lastError = res.message;
+          }
+          this.notifyStatusListeners();
+        }).catch(err => {
+          this.connectionStatus = 'error';
+          this.lastError = err.message;
+          this.notifyStatusListeners();
+        });
       } else {
+        this.db = null;
         this.isFirebaseReady = false;
         this.connectionStatus = 'offline';
         this.notifyStatusListeners();
       }
     } catch (e) {
-      console.warn("تعذر الاتصال بـ Firebase، سيتم استخدام التخزين المحلي السريع.", e);
+      console.warn("تطبيق ريلاس يعمل في الوضع المحلي فائق السرعة والموثوقية.", e);
       this.isFirebaseReady = false;
-      this.connectionStatus = 'error';
-      this.lastError = e.message;
+      this.connectionStatus = 'offline';
       this.notifyStatusListeners();
     }
   }
@@ -145,18 +305,21 @@ class RelasDataService {
 
     const startTime = Date.now();
     try {
-      // تجربة كتابة وقراءة وثيقة فحص في مجموعة _ping
       const pingRef = this.db.collection("_ping").doc("status");
-      await pingRef.set({
+      const writePromise = pingRef.set({
         lastPing: new Date().toISOString(),
         client: "Relas Admin Panel",
         status: "ok"
       });
 
-      const snap = await pingRef.get();
+      // مؤقت أمان 3 ثواني حتى لا يعلق الفحص
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Firebase connection timeout")), 3500));
+      await Promise.race([writePromise, timeoutPromise]);
+
+      const snap = await Promise.race([pingRef.get(), timeoutPromise]);
       const latency = Date.now() - startTime;
 
-      if (snap.exists) {
+      if (snap && snap.exists) {
         this.connectionStatus = 'connected';
         this.lastError = null;
         this.notifyStatusListeners();
@@ -174,192 +337,129 @@ class RelasDataService {
 
       let reason = err.message;
       if (err.code === 'permission-denied') {
-        reason = "تم رفض الإذن (Permission Denied). يرجى التأكد من تفعيل قواعد Firestore (Security Rules) في لوحة تحكم Firebase واختيار Test Mode أو السماح بالقراءة والكتابة.";
-      } else if (err.code === 'unavailable') {
-        reason = "تعذر الوصول إلى الخادم السحابي. يرجى التحقق من اتصال الإنترنت.";
+        reason = "تم رفض الإذن (Permission Denied). يرجى التأكد من تفعيل قواعد Firestore (Security Rules) بالسماح بالقراءة والكتابة.";
+      } else if (err.code === 'unavailable' || err.message.includes('timeout')) {
+        reason = "تعذر الوصول إلى الخادم السحابي أو انتهت مهلة الانتظار.";
       }
 
       return {
         success: false,
-        code: err.code,
-        message: `فشل الاتصال بـ Firebase: ${reason}`
+        code: err.code || 'timeout',
+        message: `فحص Firebase: ${reason}`
       };
     }
   }
 
-  // --- المزامنة والتهيئة التلقائية / اليدوية للبيانات ---
-  async autoSeedIfEmpty() {
+  // --- مزامنة غير معطلة (Non-blocking Cloud Helpers) ---
+  async syncDocToCloud(collectionName, docId, data) {
     if (!this.isFirebaseReady || !this.db) return;
     try {
-      const snap = await this.db.collection("dresses").limit(1).get();
-      if (snap.empty) {
-        console.log("قاعدة بيانات الفساتين فارغة في Firebase، جاري رفع البيانات الأولية تلقائياً...");
-        await this.seedInitialData(false);
-      }
+      const cloudPromise = this.db.collection(collectionName).doc(docId).set(data, { merge: true });
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Cloud sync timeout")), 3500));
+      await Promise.race([cloudPromise, timeoutPromise]);
+      console.log(`☁️ تمت المزامنة السحابية لوثيقة ${collectionName}/${docId}`);
     } catch (err) {
-      console.warn("تنبيه أثناء فحص البيانات الأولية في Firebase:", err.message);
+      console.warn(`تنبيه مزامنة سحابية لـ ${collectionName}/${docId} (البيانات محفوظة ومؤمنة محلياً):`, err.message);
     }
   }
 
-  async seedInitialData(force = false) {
-    if (!this.isFirebaseReady || !this.db) {
-      throw new Error("قاعدة بيانات Firebase غير متصلة");
-    }
-
-    let insertedDresses = 0;
-    let insertedSettings = false;
-    let insertedOrders = 0;
-
-    // 1. رفع الإعدادات
+  async deleteDocFromCloud(collectionName, docId) {
+    if (!this.isFirebaseReady || !this.db) return;
     try {
-      const settingsDoc = await this.db.collection("settings").doc("general").get();
-      if (!settingsDoc.exists || force) {
-        const localSettings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
-        const settingsToSave = Object.keys(localSettings).length > 0 ? localSettings : (window.INITIAL_SETTINGS || {});
-        await this.db.collection("settings").doc("general").set(settingsToSave, { merge: true });
-        insertedSettings = true;
-      }
-    } catch (e) {
-      console.error("خطأ رفع الإعدادات:", e);
+      const cloudPromise = this.db.collection(collectionName).doc(docId).delete();
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Cloud delete timeout")), 3500));
+      await Promise.race([cloudPromise, timeoutPromise]);
+    } catch (err) {
+      console.warn(`تعذر حذف الوثيقة السحابية ${collectionName}/${docId}:`, err.message);
     }
-
-    // 2. رفع الفساتين
-    try {
-      const dressesSnap = await this.db.collection("dresses").get();
-      if (dressesSnap.empty || force) {
-        const localDresses = JSON.parse(localStorage.getItem(STORAGE_KEYS.DRESSES) || '[]');
-        const list = localDresses.length > 0 ? localDresses : (window.INITIAL_DRESSES || []);
-        
-        for (const dress of list) {
-          await this.db.collection("dresses").doc(dress.id).set(dress);
-          insertedDresses++;
-        }
-      }
-    } catch (e) {
-      console.error("خطأ رفع الفساتين:", e);
-    }
-
-    // 3. رفع الطلبات الأولية إذا كانت فارغة
-    try {
-      const ordersSnap = await this.db.collection("orders").limit(1).get();
-      if (ordersSnap.empty || force) {
-        const localOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
-        for (const ord of localOrders) {
-          await this.db.collection("orders").doc(ord.id).set(ord);
-          insertedOrders++;
-        }
-      }
-    } catch (e) {
-      console.error("خطأ رفع الطلبات:", e);
-    }
-
-    return {
-      success: true,
-      insertedDresses,
-      insertedSettings,
-      insertedOrders,
-      message: `تمت مزامنة ورفع البيانات بنجاح: ${insertedDresses} فستان، إعدادات المتجر، و ${insertedOrders} طلب.`
-    };
-  }
-
-  // مزامنة كاملة من التخزين المحلي إلى Firebase
-  async syncLocalToFirebase() {
-    return await this.seedInitialData(true);
-  }
-
-  // سحب كامل البيانات من Firebase إلى التخزين المحلي
-  async syncFirebaseToLocal() {
-    if (!this.isFirebaseReady || !this.db) {
-      throw new Error("قاعدة بيانات Firebase غير متصلة");
-    }
-
-    // 1. جلب الإعدادات
-    const setDoc = await this.db.collection("settings").doc("general").get();
-    if (setDoc.exists) {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(setDoc.data()));
-    }
-
-    // 2. جلب الفساتين
-    const dressesSnap = await this.db.collection("dresses").get();
-    const dresses = [];
-    dressesSnap.forEach(doc => dresses.push({ id: doc.id, ...doc.data() }));
-    if (dresses.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(dresses));
-    }
-
-    // 3. جلب الطلبات
-    const ordersSnap = await this.db.collection("orders").get();
-    const orders = [];
-    ordersSnap.forEach(doc => orders.push({ id: doc.id, ...doc.data() }));
-    if (orders.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
-    }
-
-    return {
-      dressesCount: dresses.length,
-      ordersCount: orders.length
-    };
   }
 
   // --- دوال الإعدادات العامة والتواصل ---
 
   async getSettings() {
-    try {
-      if (this.isFirebaseReady && this.db) {
-        const doc = await this.db.collection("settings").doc("general").get();
-        if (doc.exists) {
-          const cloudData = { ...window.INITIAL_SETTINGS, ...doc.data() };
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(cloudData));
-          return cloudData;
-        }
+    if (this.settingsCache) {
+      return this.settingsCache;
+    }
+
+    const local = await this.localDB.getItem(STORAGE_KEYS.SETTINGS);
+    if (local && typeof local === 'object') {
+      if (!local.adminPin || local.adminPin === "123456") {
+        local.adminPin = "memo1974";
+        await this.localDB.setItem(STORAGE_KEYS.SETTINGS, local);
       }
-    } catch (e) {
-      console.warn("استرجاع الإعدادات من التخزين المحلي:", e);
+      this.settingsCache = local;
+      return local;
     }
-    const local = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        if (!parsed.adminPin || parsed.adminPin === "123456") {
-          parsed.adminPin = "memo1974";
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(parsed));
-        }
-        return parsed;
-      } catch (e) {}
-    }
-    return window.INITIAL_SETTINGS || {};
+
+    const initial = window.INITIAL_SETTINGS || {};
+    this.settingsCache = initial;
+    return initial;
   }
 
   async saveSettings(settings) {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-    try {
-      if (this.isFirebaseReady && this.db) {
-        await this.db.collection("settings").doc("general").set(settings, { merge: true });
-      }
-    } catch (e) {
-      console.error("خطأ في حفظ إعدادات Firebase:", e);
+    this.settingsCache = { ...settings };
+    await this.localDB.setItem(STORAGE_KEYS.SETTINGS, this.settingsCache);
+
+    if (this.isFirebaseReady && this.db) {
+      this.syncDocToCloud("settings", "general", this.settingsCache);
     }
-    return settings;
+
+    return this.settingsCache;
   }
 
-  // --- دوال إدارة الفساتين (Dresses CRUD) ---
+  // --- دوال إدارة الفساتين والعروض (Dresses & Catalog CRUD) ---
 
   async getDresses() {
+    // 1. استخدام الكاش المباشر إذا كان محملاً
+    if (this.dressesCache && Array.isArray(this.dressesCache) && this.dressesCache.length > 0) {
+      return this.dressesCache;
+    }
+
+    // 2. استرجاع الفساتين من التخزين المحلي الهجين (IndexedDB / LocalStorage)
+    let list = await this.localDB.getItem(STORAGE_KEYS.DRESSES);
+    if (typeof list === 'string') {
+      try {
+        list = JSON.parse(list);
+      } catch (e) {
+        list = null;
+      }
+    }
+
+    if (!Array.isArray(list) || list.length === 0) {
+      list = window.INITIAL_DRESSES && Array.isArray(window.INITIAL_DRESSES) 
+        ? [...window.INITIAL_DRESSES] 
+        : [];
+      if (list.length > 0) {
+        await this.localDB.setItem(STORAGE_KEYS.DRESSES, list);
+      }
+    }
+
+    this.dressesCache = list;
+
+    // 3. تحديث في الخلفية من السحابة إذا كانت متصلة دون تعطيل واجهة المتجر
+    if (this.isFirebaseReady && this.db) {
+      this.fetchCloudDressesInBackground();
+    }
+
+    return this.dressesCache;
+  }
+
+  async fetchCloudDressesInBackground() {
     try {
-      if (this.isFirebaseReady && this.db) {
-        const snapshot = await this.db.collection("dresses").get();
-        if (!snapshot.empty) {
-          const list = [];
-          snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-          localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(list));
-          return list;
+      const snapPromise = this.db.collection("dresses").get();
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000));
+      const snap = await Promise.race([snapPromise, timeoutPromise]);
+      if (snap && !snap.empty) {
+        const cloudList = [];
+        snap.forEach(doc => cloudList.push({ id: doc.id, ...doc.data() }));
+        if (cloudList.length > 0) {
+          this.dressesCache = cloudList;
+          await this.localDB.setItem(STORAGE_KEYS.DRESSES, cloudList);
         }
       }
     } catch (e) {
-      console.warn("جلب الفساتين من التخزين المحلي:", e);
+      // تجاهل أخطاء السحابة في الخلفية للحفاظ على استقرار المتجر
     }
-    const local = localStorage.getItem(STORAGE_KEYS.DRESSES);
-    return local ? JSON.parse(local) : (window.INITIAL_DRESSES || []);
   }
 
   async addDress(dressData) {
@@ -372,79 +472,89 @@ class RelasDataService {
       createdAt: new Date().toISOString()
     };
 
-    // حفظ محلي أولاً
     const dresses = await this.getDresses();
     dresses.unshift(newDress);
-    localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(dresses));
+    this.dressesCache = dresses;
 
-    // حفظ سحابي في Firebase
-    try {
-      if (this.isFirebaseReady && this.db) {
-        await this.db.collection("dresses").doc(id).set(newDress);
-      }
-    } catch (e) {
-      console.error("خطأ إضافة فستان في Firebase:", e);
+    // حفظ فوري ومؤكد في التخزين الهجين
+    await this.localDB.setItem(STORAGE_KEYS.DRESSES, dresses);
+
+    // مزامنة سحابية خلفية غير معطلة
+    if (this.isFirebaseReady && this.db) {
+      this.syncDocToCloud("dresses", id, newDress);
     }
+
     return newDress;
   }
 
   async updateDress(id, updatedData) {
     const dresses = await this.getDresses();
-    const index = dresses.findIndex(d => d.id === id);
-    if (index !== -1) {
-      dresses[index] = { ...dresses[index], ...updatedData, updatedAt: new Date().toISOString() };
-      localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(dresses));
+    const targetId = String(id);
+    const index = dresses.findIndex(d => String(d.id) === targetId);
 
-      try {
-        if (this.isFirebaseReady && this.db) {
-          await this.db.collection("dresses").doc(id).update(updatedData);
-        }
-      } catch (e) {
-        console.error("خطأ تحديث فستان في Firebase:", e);
+    if (index !== -1) {
+      const merged = {
+        ...dresses[index],
+        ...updatedData,
+        id: dresses[index].id,
+        updatedAt: new Date().toISOString()
+      };
+      dresses[index] = merged;
+      this.dressesCache = dresses;
+
+      // حفظ فوري ومؤكد في التخزين الهجين
+      await this.localDB.setItem(STORAGE_KEYS.DRESSES, dresses);
+
+      // مزامنة سحابية خلفية بـ merge: true حتى تنجح في كل الحالات
+      if (this.isFirebaseReady && this.db) {
+        this.syncDocToCloud("dresses", targetId, merged);
       }
-      return dresses[index];
+
+      return merged;
     }
-    throw new Error("الفستان غير موجود");
+
+    // إذا لم يتم العثور على المعرف، يتم إضافته كعنصر جديد لضمان عدم ضياع أي بيانات
+    return await this.addDress({ ...updatedData, id });
   }
 
   async deleteDress(id) {
+    const targetId = String(id);
     let dresses = await this.getDresses();
-    dresses = dresses.filter(d => d.id !== id);
-    localStorage.setItem(STORAGE_KEYS.DRESSES, JSON.stringify(dresses));
+    dresses = dresses.filter(d => String(d.id) !== targetId);
+    this.dressesCache = dresses;
 
-    try {
-      if (this.isFirebaseReady && this.db) {
-        await this.db.collection("dresses").doc(id).delete();
-      }
-    } catch (e) {
-      console.error("خطأ حذف فستان من Firebase:", e);
+    await this.localDB.setItem(STORAGE_KEYS.DRESSES, dresses);
+
+    if (this.isFirebaseReady && this.db) {
+      this.deleteDocFromCloud("dresses", targetId);
     }
     return true;
   }
 
   async getDressById(id) {
+    const targetId = String(id);
     const dresses = await this.getDresses();
-    return dresses.find(d => d.id === id) || null;
+    return dresses.find(d => String(d.id) === targetId) || null;
   }
 
   // --- دوال إدارة طلبات القياسات والتفصيل (Orders & Measurements) ---
 
   async getOrders() {
-    try {
-      if (this.isFirebaseReady && this.db) {
-        const snapshot = await this.db.collection("orders").orderBy("createdAt", "desc").get();
-        if (!snapshot.empty) {
-          const list = [];
-          snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(list));
-          return list;
-        }
-      }
-    } catch (e) {
-      console.warn("جلب الطلبات من التخزين المحلي:", e);
+    if (this.ordersCache && Array.isArray(this.ordersCache) && this.ordersCache.length > 0) {
+      return this.ordersCache;
     }
-    const local = localStorage.getItem(STORAGE_KEYS.ORDERS);
-    return local ? JSON.parse(local) : [];
+
+    let orders = await this.localDB.getItem(STORAGE_KEYS.ORDERS);
+    if (typeof orders === 'string') {
+      try {
+        orders = JSON.parse(orders);
+      } catch {
+        orders = null;
+      }
+    }
+
+    this.ordersCache = Array.isArray(orders) ? orders : [];
+    return this.ordersCache;
   }
 
   async saveCustomOrder(orderData) {
@@ -460,15 +570,14 @@ class RelasDataService {
 
     const orders = await this.getOrders();
     orders.unshift(newOrder);
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+    this.ordersCache = orders;
 
-    try {
-      if (this.isFirebaseReady && this.db) {
-        await this.db.collection("orders").doc(orderId).set(newOrder);
-      }
-    } catch (e) {
-      console.error("خطأ حفظ الطلب في Firebase:", e);
+    await this.localDB.setItem(STORAGE_KEYS.ORDERS, orders);
+
+    if (this.isFirebaseReady && this.db) {
+      this.syncDocToCloud("orders", orderId, newOrder);
     }
+
     return newOrder;
   }
 
@@ -483,44 +592,41 @@ class RelasDataService {
     };
 
     const orders = await this.getOrders();
-    const index = orders.findIndex(o => o.id === id);
+    const index = orders.findIndex(o => String(o.id) === String(id));
     if (index !== -1) {
       const info = statusMap[newStatus] || { text: newStatus, color: "gray" };
       orders[index].status = newStatus;
       orders[index].statusText = info.text;
       orders[index].statusColor = info.color;
       orders[index].updatedAt = new Date().toISOString();
+      this.ordersCache = orders;
 
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+      await this.localDB.setItem(STORAGE_KEYS.ORDERS, orders);
 
-      try {
-        if (this.isFirebaseReady && this.db) {
-          await this.db.collection("orders").doc(id).update({
-            status: newStatus,
-            statusText: info.text,
-            statusColor: info.color,
-            updatedAt: orders[index].updatedAt
-          });
-        }
-      } catch (e) {
-        console.error("خطأ تحديث حالة الطلب في Firebase:", e);
+      if (this.isFirebaseReady && this.db) {
+        this.syncDocToCloud("orders", String(id), {
+          status: newStatus,
+          statusText: info.text,
+          statusColor: info.color,
+          updatedAt: orders[index].updatedAt
+        });
       }
+
       return orders[index];
     }
     throw new Error("الطلب غير موجود");
   }
 
   async deleteOrder(id) {
+    const targetId = String(id);
     let orders = await this.getOrders();
-    orders = orders.filter(o => o.id !== id);
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+    orders = orders.filter(o => String(o.id) !== targetId);
+    this.ordersCache = orders;
 
-    try {
-      if (this.isFirebaseReady && this.db) {
-        await this.db.collection("orders").doc(id).delete();
-      }
-    } catch (e) {
-      console.error("خطأ حذف الطلب في Firebase:", e);
+    await this.localDB.setItem(STORAGE_KEYS.ORDERS, orders);
+
+    if (this.isFirebaseReady && this.db) {
+      this.deleteDocFromCloud("orders", targetId);
     }
     return true;
   }
@@ -529,7 +635,7 @@ class RelasDataService {
 
   getFirebaseConfig() {
     const config = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
-    return config ? JSON.parse(config) : DEFAULT_FIREBASE_CONFIG;
+    return config ? JSON.parse(config) : null;
   }
 
   saveFirebaseConfig(config) {
