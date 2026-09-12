@@ -16,7 +16,7 @@ const INITIAL_SETTINGS = {
   instagramUrl: "https://instagram.com",
   snapchatUrl: "https://snapchat.com",
   tiktokUrl: "https://tiktok.com",
-  adminPin: "123456" // كلمة المرور الافتراضية للوحة التحكم
+  adminPin: "memo1974" // كلمة المرور الافتراضية للوحة التحكم
 };
 
 const INITIAL_DRESSES = [

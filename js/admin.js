@@ -36,15 +36,15 @@ function initAdminAuth() {
       e.preventDefault();
       const enteredPin = pinInput.value.trim();
       const settings = await window.relasDataService.getSettings();
-      const validPin = settings.adminPin || "123456";
+      const validPin = settings.adminPin || "memo1974";
 
-      if (enteredPin === validPin || enteredPin === "123456" || enteredPin === "relas2026") {
+      if (enteredPin === validPin || enteredPin === "memo1974" || enteredPin === "relas2026") {
         sessionStorage.setItem('relas_admin_auth', 'true');
         loginSection.classList.add('hidden');
         dashboardSection.classList.remove('hidden');
         loadDashboardData();
       } else {
-        loginError.textContent = "كلمة المرور / الرمز غير صحيح. (الافتراضي: 123456)";
+        loginError.textContent = "كلمة المرور / الرمز غير صحيح. (الافتراضي: memo1974)";
         loginError.classList.remove('hidden');
       }
     });
@@ -590,7 +590,7 @@ function populateSettingsForm() {
   document.getElementById('settingsEmail').value = storeSettings.email || '';
   document.getElementById('settingsCity').value = storeSettings.city || '';
   document.getElementById('settingsAnnouncement').value = storeSettings.announcementText || '';
-  document.getElementById('settingsAdminPin').value = storeSettings.adminPin || '123456';
+  document.getElementById('settingsAdminPin').value = storeSettings.adminPin || 'memo1974';
 
   // إعدادات Firebase
   const fbConfig = window.relasDataService.getFirebaseConfig();
@@ -603,7 +603,59 @@ function populateSettingsForm() {
   }
 }
 
+// نافذة التعديل الفوري السريع للواتساب ورقم التواصل
+window.openQuickContactModal = function() {
+  const modal = document.getElementById('quickContactModal');
+  if (!modal) return;
+  document.getElementById('quickModalWhatsApp').value = storeSettings.whatsappNumber || '966551234567';
+  document.getElementById('quickModalPhone').value = storeSettings.phoneNumber || '+966 55 123 4567';
+  document.getElementById('quickModalAdminPin').value = storeSettings.adminPin || 'memo1974';
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+};
+
+window.closeQuickContactModal = function() {
+  const modal = document.getElementById('quickContactModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+};
+
+window.testQuickWhatsApp = function() {
+  const num = document.getElementById('quickModalWhatsApp').value.trim().replace(/[^0-9]/g, '');
+  if (num) {
+    window.open(`https://wa.me/${num}?text=${encodeURIComponent('تجربة ربط واتساب ريلاس للأزياء ✨')}`, '_blank');
+  } else {
+    alert("يرجى إدخال رقم الواتساب أولاً.");
+  }
+};
+
 function bindSettingsEvents() {
+  // النموذج السريع لتعديل رقم التواصل
+  const quickForm = document.getElementById('quickContactForm');
+  if (quickForm) {
+    quickForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newWhatsApp = document.getElementById('quickModalWhatsApp').value.trim();
+      const newPhone = document.getElementById('quickModalPhone').value.trim();
+      const newPin = document.getElementById('quickModalAdminPin').value.trim() || 'memo1974';
+
+      const updated = {
+        ...storeSettings,
+        whatsappNumber: newWhatsApp,
+        phoneNumber: newPhone,
+        adminPin: newPin
+      };
+
+      await window.relasDataService.saveSettings(updated);
+      storeSettings = updated;
+      populateSettingsForm();
+      updateStatsCards();
+      closeQuickContactModal();
+      alert(`✅ تم تحديث وتفعيل رقم الواتساب (${newWhatsApp}) وكلمة المرور فوراً عبر كامل الموقع!`);
+    });
+  }
+
   const form = document.getElementById('storeSettingsForm');
   if (form) {
     form.addEventListener('submit', async (e) => {
@@ -617,7 +669,7 @@ function bindSettingsEvents() {
         email: document.getElementById('settingsEmail').value.trim(),
         city: document.getElementById('settingsCity').value.trim(),
         announcementText: document.getElementById('settingsAnnouncement').value.trim(),
-        adminPin: document.getElementById('settingsAdminPin').value.trim() || '123456'
+        adminPin: document.getElementById('settingsAdminPin').value.trim() || 'memo1974'
       };
 
       await window.relasDataService.saveSettings(updated);

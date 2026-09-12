@@ -317,7 +317,17 @@ class RelasDataService {
       console.warn("استرجاع الإعدادات من التخزين المحلي:", e);
     }
     const local = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    return local ? JSON.parse(local) : (window.INITIAL_SETTINGS || {});
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (!parsed.adminPin || parsed.adminPin === "123456") {
+          parsed.adminPin = "memo1974";
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(parsed));
+        }
+        return parsed;
+      } catch (e) {}
+    }
+    return window.INITIAL_SETTINGS || {};
   }
 
   async saveSettings(settings) {

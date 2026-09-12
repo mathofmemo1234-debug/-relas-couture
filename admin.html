@@ -67,7 +67,7 @@
           <input 
             type="password" 
             id="adminPinInput" 
-            placeholder="كلمة المرور (الافتراضي: 123456)" 
+            placeholder="كلمة المرور (الافتراضي: memo1974)" 
             class="w-full text-center tracking-widest text-lg font-bold bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-white focus:border-amber-500 focus:outline-none"
             required
             autocomplete="current-password"
@@ -195,8 +195,8 @@
             <span id="statWhatsAppDisplay" class="font-mono text-xl font-black bg-emerald-950 px-4 py-2 rounded-lg border border-emerald-700" dir="ltr">
               966551234567
             </span>
-            <button onclick="document.querySelector('[data-tab=\'settings\']').click()" class="bg-white text-emerald-950 hover:bg-emerald-100 px-4 py-2 rounded-lg text-xs font-bold transition shadow">
-              تغيير الرقم ⚙️
+            <button onclick="openQuickContactModal()" class="bg-white text-emerald-950 hover:bg-emerald-100 px-4 py-2 rounded-lg text-xs font-bold transition shadow flex items-center gap-1">
+              <span>تعديل رقم التواصل فوراً</span> ⚙️
             </button>
           </div>
         </div>
@@ -596,6 +596,70 @@ service cloud.firestore {
         </button>
       </div>
       <div id="tailorCardContent"></div>
+    </div>
+  </div>
+
+  <!-- نافذة التعديل الفوري لرقم التواصل والواتساب وكلمة المرور -->
+  <div id="quickContactModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative animate-in fade-in zoom-in duration-150">
+      <button onclick="closeQuickContactModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-gray-700">✕</button>
+      <h3 class="text-base font-bold text-gray-900 mb-1 flex items-center gap-2">
+        <span>📱 تعديل رقم التواصل والواتساب الفوري</span>
+      </h3>
+      <p class="text-xs text-gray-500 mb-4">
+        يتم تفعيل وتحديث الرقم فوراً عبر كافة صفحات المتجر واستوديو القياسات وأزرار الطلب.
+      </p>
+
+      <form id="quickContactForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">رقم الواتساب لاستقبال الطلبات والاستشارات *</label>
+          <div class="flex items-center gap-2">
+            <input 
+              type="text" 
+              id="quickModalWhatsApp" 
+              required 
+              placeholder="966551234567" 
+              dir="ltr"
+              class="w-full text-base font-bold font-mono border border-emerald-400 rounded-lg px-3 py-2 bg-emerald-50/50 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+            />
+            <button type="button" onclick="testQuickWhatsApp()" class="px-3 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition flex-shrink-0">
+              تجربة 📲
+            </button>
+          </div>
+          <span class="text-[10px] text-gray-500 mt-1 block">مع مفتاح الدولة بدون + أو مسافات (مثال: 966501234567)</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">رقم الهاتف الظاهر للاتصال والموقع</label>
+          <input 
+            type="text" 
+            id="quickModalPhone" 
+            placeholder="+966 55 123 4567" 
+            dir="ltr"
+            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-right focus:border-amber-600 focus:outline-none"
+          />
+        </div>
+
+        <div class="pt-2 border-t">
+          <label class="block text-xs font-bold text-gray-700 mb-1">كلمة مرور لوحة التحكم (الرمز السري)</label>
+          <input 
+            type="text" 
+            id="quickModalAdminPin" 
+            placeholder="memo1974" 
+            class="w-full text-sm font-mono border border-gray-300 rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none"
+          />
+          <span class="text-[10px] text-gray-500 mt-1 block">يمكنكِ تغيير الرمز في أي وقت (الافتراضي: memo1974)</span>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2">
+          <button type="button" onclick="closeQuickContactModal()" class="btn-luxury-outline text-xs py-2 px-4">
+            إلغاء
+          </button>
+          <button type="submit" class="btn-luxury-gold text-xs py-2 px-6 font-bold shadow">
+            حفظ وتطبيق التغييرات فوراً ✨
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
