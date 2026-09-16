@@ -120,16 +120,25 @@
     <!-- شريط التنقل بين التبويبات (Dashboard Tabs Navigation) -->
     <nav class="bg-neutral-950 text-gray-300 border-b border-neutral-800 px-6 py-2">
       <div class="container mx-auto flex items-center gap-2 overflow-x-auto">
-        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-bold bg-amber-600 text-white flex items-center gap-1.5 transition" data-tab="overview">
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-bold bg-amber-600 text-white flex items-center gap-1.5 transition whitespace-nowrap" data-tab="overview">
           📊 النظرة العامة
         </button>
-        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition" data-tab="dresses">
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition whitespace-nowrap" data-tab="dresses">
           👗 إدارة الفساتين والكاتالوج
         </button>
-        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition" data-tab="orders">
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition whitespace-nowrap" data-tab="categories">
+          🏷️ إدارة التصنيفات والأقسام
+        </button>
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition whitespace-nowrap" data-tab="theme">
+          🎨 مظهر وهوية الموقع والبنرات
+        </button>
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition whitespace-nowrap" data-tab="orders">
           📐 طلبات القياس والتفصيل
         </button>
-        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition" data-tab="settings">
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition whitespace-nowrap" data-tab="sketches">
+          ✏️ الرسومات والتفاصيل المخصصة
+        </button>
+        <button class="admin-nav-btn px-4 py-2 rounded text-xs md:text-sm font-semibold hover:bg-neutral-800 text-gray-300 flex items-center gap-1.5 transition whitespace-nowrap" data-tab="settings">
           ⚙️ إعدادات المتجر والواتساب
         </button>
       </div>
@@ -236,6 +245,257 @@
         </div>
       </div>
 
+      <!-- ==================== تبويب: إدارة التصنيفات والأقسام (Categories Management) ==================== -->
+      <div id="tabPane_categories" class="admin-tab-pane hidden space-y-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200">
+          <div>
+            <h2 class="text-lg font-bold text-gray-900">إدارة تصنيفات وأقسام الفساتين والعروض 🏷️</h2>
+            <p class="text-xs text-gray-500">إضافة أقسام جديدة (عبايات، فساتين خروج، سهرة، عروض فلاش...) لتظهر فوراً كأزرار تصفية وتبويبات فلاش في المتجر.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- نموذج إضافة تصنيف جديد -->
+          <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm lg:col-span-1 space-y-4">
+            <h3 class="font-bold text-sm text-gray-900 border-b pb-2 flex items-center gap-2">
+              <span>➕ إضافة تصنيف جديد</span>
+            </h3>
+            <form id="categoryAddForm" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">اسم التصنيف (بالعربي) *</label>
+                <input type="text" id="catInputName" required placeholder="مثال: عبايات راقية / فساتين خروج" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">المعرف الإنجليزي (Slug / ID) *</label>
+                <input type="text" id="catInputId" required placeholder="مثال: abayas / casual_dresses" dir="ltr" class="w-full text-sm font-mono border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none text-left" />
+                <span class="text-[10px] text-gray-400 mt-1 block">أحرف إنجليزية صغيرة وأرقام بدون مسافات (مثل: abayas, flash_deals)</span>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">رمز تعبيري أو أيقونة (Emoji) *</label>
+                <input type="text" id="catInputIcon" required placeholder="مثال: 🧕 أو 👗 أو ⚡" class="w-full text-sm border border-gray-300 rounded px-3 py-2 text-center focus:border-amber-600 focus:outline-none" />
+              </div>
+              <div class="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-amber-900">
+                  <input type="checkbox" id="catInputIsFlash" class="w-4 h-4 text-amber-600 rounded" />
+                  <span>⚡ تمييز كـ "عرض فلاش وميض خاص"</span>
+                </label>
+                <p class="text-[10px] text-amber-700 mt-1">يمنح التبويب توهجاً بصرياً وحركة فلاش سريعة تخطف أنظار الزبونات في المتجر.</p>
+              </div>
+              <button type="submit" class="w-full btn-luxury-gold py-2.5 text-xs font-bold shadow">
+                حفظ وإضافة التصنيف للمتجر ✨
+              </button>
+            </form>
+          </div>
+
+          <!-- جدول التصنيفات الحالية -->
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto lg:col-span-2">
+            <div class="p-4 border-b">
+              <h3 class="font-bold text-sm text-gray-900">الأقسام والتصنيفات الحالية في الموقع</h3>
+            </div>
+            <table class="w-full text-right border-collapse">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-600">
+                  <th class="py-3 px-4">الأيقونة</th>
+                  <th class="py-3 px-4">اسم التصنيف</th>
+                  <th class="py-3 px-4">المعرف (Slug)</th>
+                  <th class="py-3 px-4">نوع العرض</th>
+                  <th class="py-3 px-4">المنتجات المرتبطة</th>
+                  <th class="py-3 px-4 text-left">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="categoriesTableBody">
+                <!-- يتم ملؤه عبر admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== تبويب: مظهر وهوية الموقع والبنرات (Theme & Appearance) ==================== -->
+      <div id="tabPane_theme" class="admin-tab-pane hidden space-y-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200">
+          <div>
+            <h2 class="text-lg font-bold text-gray-900">تخصيص مظهر وهوية المتجر والبنرات الترويجية 🎨</h2>
+            <p class="text-xs text-gray-500">تحكم كامل في لوحة ألوان الموقع، صورة بنر الواجهة العريضة، وألوان ونصوص شريط الإعلانات.</p>
+          </div>
+        </div>
+
+        <!-- ألوان جاهزة بلمسة واحدة (Theme Presets) -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-3">
+          <h3 class="font-bold text-sm text-gray-900 flex items-center gap-2">
+            <span>✨ ستايلات وألوان جاهزة بلمسة واحدة (Presets):</span>
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <button type="button" onclick="applyThemePreset('royal_gold')" class="p-3 rounded-xl border border-amber-300 bg-amber-50/50 hover:bg-amber-100 text-amber-950 text-xs font-bold flex flex-col items-center gap-1 transition">
+              <span class="text-lg">👑</span>
+              <span>الذهبي الملكي (Royal Gold)</span>
+            </button>
+            <button type="button" onclick="applyThemePreset('blush_rose')" class="p-3 rounded-xl border border-rose-300 bg-rose-50/50 hover:bg-rose-100 text-rose-950 text-xs font-bold flex flex-col items-center gap-1 transition">
+              <span class="text-lg">🌸</span>
+              <span>الوردي الأنيق (Blush Rose)</span>
+            </button>
+            <button type="button" onclick="applyThemePreset('emerald_luxe')" class="p-3 rounded-xl border border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-950 text-xs font-bold flex flex-col items-center gap-1 transition">
+              <span class="text-lg">💎</span>
+              <span>الزمرد الفاخر (Emerald Luxe)</span>
+            </button>
+            <button type="button" onclick="applyThemePreset('noir_elite')" class="p-3 rounded-xl border border-neutral-700 bg-neutral-900 hover:bg-black text-amber-400 text-xs font-bold flex flex-col items-center gap-1 transition">
+              <span class="text-lg">🖤</span>
+              <span>الأسود المخملي (Noir Elite)</span>
+            </button>
+          </div>
+        </div>
+
+        <form id="storeThemeForm" class="space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- ألوان الواجهة -->
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+              <h3 class="font-bold text-sm text-gray-900 border-b pb-2 flex items-center gap-2">
+                <span>🎨 باليت ألوان الموقع المخصصة</span>
+              </h3>
+
+              <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                  <div>
+                    <label class="block text-xs font-bold text-gray-800">اللون الذهبي / الرئيسي (Primary Color)</label>
+                    <span class="text-[10px] text-gray-500">للأزرار الفاخرة، الإطارات، والتأكيدات</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input type="color" id="themePrimaryColor" class="w-10 h-10 p-0 rounded border cursor-pointer" />
+                    <input type="text" id="themePrimaryColorHex" dir="ltr" class="w-24 text-xs font-mono border rounded px-2 py-1 uppercase font-bold text-center" />
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                  <div>
+                    <label class="block text-xs font-bold text-gray-800">اللون الثانوي والداكن (Secondary / Noir)</label>
+                    <span class="text-[10px] text-gray-500">للترويسة، الفوتر، والخطوط الداكنة</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input type="color" id="themeSecondaryColor" class="w-10 h-10 p-0 rounded border cursor-pointer" />
+                    <input type="text" id="themeSecondaryColorHex" dir="ltr" class="w-24 text-xs font-mono border rounded px-2 py-1 uppercase font-bold text-center" />
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                  <div>
+                    <label class="block text-xs font-bold text-gray-800">لون خلفية المتجر (Background Color)</label>
+                    <span class="text-[10px] text-gray-500">الخلفية العامة لصفحة المتجر</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input type="color" id="themeBgColor" class="w-10 h-10 p-0 rounded border cursor-pointer" />
+                    <input type="text" id="themeBgColorHex" dir="ltr" class="w-24 text-xs font-mono border rounded px-2 py-1 uppercase font-bold text-center" />
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                  <div>
+                    <label class="block text-xs font-bold text-gray-800">لون وميض الفلاش والخصومات (Accent / Flash)</label>
+                    <span class="text-[10px] text-gray-500">لتوهج شارات التخفيض والعروض الخاصة</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input type="color" id="themeAccentColor" class="w-10 h-10 p-0 rounded border cursor-pointer" />
+                    <input type="text" id="themeAccentColorHex" dir="ltr" class="w-24 text-xs font-mono border rounded px-2 py-1 uppercase font-bold text-center" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- بنر الواجهة والعناوين -->
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+              <h3 class="font-bold text-sm text-gray-900 border-b pb-2 flex items-center gap-2">
+                <span>🖼️ بنر وصورة الواجهة الرئيسية (Hero Banner)</span>
+              </h3>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">معاينة صورة بنر الواجهة الحالي:</label>
+                <div class="relative w-full h-36 rounded-lg overflow-hidden border border-gray-300 bg-neutral-900">
+                  <img id="themeHeroBannerPreview" src="" alt="Hero Preview" class="w-full h-full object-cover" />
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center p-3 text-center">
+                    <div>
+                      <span id="themeHeroPreviewTitle" class="text-white font-bold text-sm block">دار ريلاس للأزياء الراقية</span>
+                      <span id="themeHeroPreviewSubtitle" class="text-amber-200 text-xs block">تصاميم تخطف الأنظار</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- رفع صورة البنر مباشرة -->
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">رفع صورة بنر جديدة من الجهاز أو الهاتف:</label>
+                <div class="image-upload-dropzone" onclick="document.getElementById('themeBannerFileInput').click()">
+                  <input type="file" id="themeBannerFileInput" accept="image/*" class="hidden" />
+                  <div class="text-center py-2">
+                    <span class="text-2xl">📸</span>
+                    <p class="text-xs font-bold text-gray-700 mt-1">انقري هنا لرفع صورة خلفية بنر جديدة</p>
+                    <p class="text-[10px] text-gray-400">يتم ضغط الصورة وتحسينها تلقائياً لأقصى سرعة</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">أو رابط صورة البنر (URL):</label>
+                <input type="url" id="themeHeroImage" dir="ltr" placeholder="https://images.unsplash.com/photo-..." class="w-full text-xs font-mono border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">العنوان الرئيسي للبنر:</label>
+                <input type="text" id="themeHeroTitle" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">العنوان الفرعي للبنر:</label>
+                <input type="text" id="themeHeroSubtitle" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+            </div>
+
+            <!-- شريط الإعلانات العلوي -->
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm lg:col-span-2 space-y-4">
+              <h3 class="font-bold text-sm text-gray-900 border-b pb-2 flex items-center gap-2">
+                <span>📢 شريط الإعلانات العلوي (Announcement Bar)</span>
+              </h3>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">لون خلفية الشريط</label>
+                  <div class="flex items-center gap-2">
+                    <input type="color" id="themeAnnouncementBg" class="w-10 h-10 p-0 rounded border cursor-pointer" />
+                    <input type="text" id="themeAnnouncementBgHex" dir="ltr" class="w-24 text-xs font-mono border rounded px-2 py-1 uppercase font-bold text-center" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">لون خط النص</label>
+                  <div class="flex items-center gap-2">
+                    <input type="color" id="themeAnnouncementColor" class="w-10 h-10 p-0 rounded border cursor-pointer" />
+                    <input type="text" id="themeAnnouncementColorHex" dir="ltr" class="w-24 text-xs font-mono border rounded px-2 py-1 uppercase font-bold text-center" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">معاينة مباشرة للشريط:</label>
+                  <div id="announcementPreviewBox" class="p-2.5 text-center text-xs font-bold rounded border shadow-sm">
+                    ✨ شحن وتوصيل مجاني لكافة مدن المملكة
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">نص الإعلان العلوي:</label>
+                <input type="text" id="themeAnnouncementText" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none" />
+              </div>
+            </div>
+
+          </div>
+
+          <div class="pt-4 border-t flex justify-end">
+            <button type="submit" class="btn-luxury-gold py-3 px-8 text-sm font-bold shadow-lg">
+              حفظ وتطبيق المظهر والبنرات فوراً 🎨💾
+            </button>
+          </div>
+        </form>
+      </div>
+
       <!-- ==================== تبويب 3: طلبات القياس والتفصيل (Orders Management) ==================== -->
       <div id="tabPane_orders" class="admin-tab-pane hidden space-y-6">
         
@@ -259,6 +519,34 @@
               </tr>
             </thead>
             <tbody id="ordersTableBody">
+              <!-- يتم ملؤه عبر admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== تبويب: الرسومات والتفاصيل المخصصة (Custom Sketches) ==================== -->
+      <div id="tabPane_sketches" class="admin-tab-pane hidden space-y-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200">
+          <div>
+            <h2 class="text-lg font-bold text-gray-900">رسومات وتفاصيل الزبونات الخاصة (Custom Sketches) ✏️👗</h2>
+            <p class="text-xs text-gray-500">استعراض التصاميم والرسومات التي رسمتها أو رفعتها الزبونات مع تفاصيل القماش والملاحظات، وإمكانية التواصل المباشر عبر الواتساب.</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-600">
+                <th class="py-3 px-4">#</th>
+                <th class="py-3 px-4">معاينة الرسمة</th>
+                <th class="py-3 px-4">اسم الزبونة ورقم الهاتف</th>
+                <th class="py-3 px-4">التاريخ والمناسبة</th>
+                <th class="py-3 px-4">نوع القماش والملاحظات</th>
+                <th class="py-3 px-4 text-left">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="sketchesTableBody">
               <!-- يتم ملؤه عبر admin.js -->
             </tbody>
           </table>
@@ -335,6 +623,78 @@
               <div>
                 <label for="settingsAdminPin" class="block text-xs font-bold text-gray-700 mb-1">كلمة مرور لوحة التحكم الجديدة</label>
                 <input type="password" id="settingsAdminPin" placeholder="••••••••" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-amber-600 focus:outline-none font-mono tracking-widest" />
+              </div>
+
+              <!-- نظام التخفيض والخصم التلقائي عند الوصول لقيمة معينة في السلة -->
+              <div class="md:col-span-2 bg-amber-50/90 p-5 rounded-xl border border-amber-300 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-amber-200 pb-3 gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">🎁</span>
+                    <div>
+                      <h4 class="font-bold text-sm text-amber-950">نظام الخصم والتخفيض التلقائي للسلة (Threshold Discount)</h4>
+                      <p class="text-xs text-amber-800">تطبيق تخفيض فوري للزبونة عند وصول مجموع السلة لقيمة يحددها مدير لوحة التحكم.</p>
+                    </div>
+                  </div>
+                  <label class="flex items-center gap-2 cursor-pointer font-bold text-xs text-amber-950 bg-white px-3 py-1.5 rounded-lg border border-amber-300 shadow-sm">
+                    <input type="checkbox" id="settingsDiscountEnabled" class="w-4 h-4 text-amber-600 rounded" />
+                    <span>تفعيل التخفيض التلقائي 🌟</span>
+                  </label>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label for="settingsDiscountThreshold" class="block text-xs font-bold text-gray-800 mb-1">
+                      الحد الأدنى لمجموع السلة لتفعيل الخصم (ر.س) *
+                    </label>
+                    <input 
+                      type="number" 
+                      id="settingsDiscountThreshold" 
+                      min="0" 
+                      step="50" 
+                      placeholder="مثال: 5000"
+                      class="w-full text-sm font-bold border border-amber-300 rounded px-3 py-2 bg-white focus:border-amber-600 focus:outline-none"
+                    />
+                    <span class="text-[10px] text-gray-500 mt-1 block">مثلاً: 5000 ريال سعودي</span>
+                  </div>
+
+                  <div>
+                    <label for="settingsDiscountType" class="block text-xs font-bold text-gray-800 mb-1">
+                      نوع التخفيض *
+                    </label>
+                    <select id="settingsDiscountType" class="w-full text-sm font-bold border border-amber-300 rounded px-3 py-2 bg-white focus:border-amber-600 focus:outline-none">
+                      <option value="percentage">نسبة مئوية مخصومة (%)</option>
+                      <option value="fixed">مبلغ مالي مخصوم (ر.س)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label for="settingsDiscountValue" class="block text-xs font-bold text-gray-800 mb-1">
+                      قيمة التخفيض *
+                    </label>
+                    <input 
+                      type="number" 
+                      id="settingsDiscountValue" 
+                      min="0" 
+                      step="1" 
+                      placeholder="مثال: 15 أو 500"
+                      class="w-full text-sm font-bold border border-amber-300 rounded px-3 py-2 bg-white focus:border-amber-600 focus:outline-none"
+                    />
+                    <span class="text-[10px] text-gray-500 mt-1 block">إذا نسبة أدخلي: 15 (يعني 15%)، إذا مبلغ: 500</span>
+                  </div>
+
+                  <div class="sm:col-span-3">
+                    <label for="settingsDiscountPromoText" class="block text-xs font-bold text-gray-800 mb-1">
+                      النص التشجيعي الذي يظهر في السلة قبل اكتمال الهدف
+                    </label>
+                    <input 
+                      type="text" 
+                      id="settingsDiscountPromoText" 
+                      placeholder="أضيفي بقيمة {remaining} ر.س إضافية واحصلي على خصم {discount} فوراً!"
+                      class="w-full text-sm border border-amber-300 rounded px-3 py-2 bg-white focus:border-amber-600 focus:outline-none"
+                    />
+                    <span class="text-[10px] text-gray-500 mt-1 block">يتم استبدال {remaining} تلقائياً بالمبلغ المتبقي، و {discount} بقيمة الخصم.</span>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -660,6 +1020,17 @@ service cloud.firestore {
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- نافذة استعراض رسمة وتفاصيل الزبونة بالكامل (Customer Sketch Detail Modal) -->
+  <div id="sketchDetailModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-6 md:p-8 relative">
+      <button onclick="document.getElementById('sketchDetailModal').classList.add('hidden')" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-gray-700">✕</button>
+      <h3 class="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+        <span>✏️ تفاصيل ورسمة الزبونة للتفصيل الخاص</span>
+      </h3>
+      <div id="sketchDetailContent" class="mt-4 space-y-4"></div>
     </div>
   </div>
 

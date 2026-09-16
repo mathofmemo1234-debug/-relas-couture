@@ -8,7 +8,12 @@ const STORAGE_KEYS = {
   DRESSES: 'relas_dresses_v1',
   ORDERS: 'relas_orders_v1',
   SETTINGS: 'relas_settings_v1',
-  FIREBASE_CONFIG: 'relas_firebase_config_v1'
+  FIREBASE_CONFIG: 'relas_firebase_config_v1',
+  CATEGORIES: 'relas_categories_v1',
+  USERS: 'relas_users_v1',
+  CURRENT_USER: 'relas_current_user_v1',
+  CART: 'relas_cart_v1',
+  SKETCHES: 'relas_sketches_v1'
 };
 
 // محرك التخزين المحلي عالي السعة (IndexedDB مع المرآة الآمنة لـ LocalStorage)
@@ -149,6 +154,9 @@ class RelasDataService {
     this.dressesCache = null;
     this.ordersCache = null;
     this.settingsCache = null;
+    this.categoriesCache = null;
+    this.cartCache = null;
+    this.currentUserCache = null;
 
     this.init();
   }
@@ -188,10 +196,57 @@ class RelasDataService {
         whatsappNumber: "966551234567",
         phoneNumber: "+966 55 123 4567",
         currency: "ر.س",
-        adminPin: "memo1974"
+        adminPin: "memo1974",
+        primaryColor: "#c5a880",
+        secondaryColor: "#141414",
+        bgColor: "#faf8f5",
+        accentColor: "#d4af37",
+        discountEnabled: true,
+        discountThreshold: 5000,
+        discountType: "percent",
+        discountValue: 10,
+        discountPromoText: "خصم حصري 10% عند وصول مشترياتكِ إلى 5,000 ر.س فأكثر!"
       };
       await this.localDB.setItem(STORAGE_KEYS.SETTINGS, defaultSettings);
       this.settingsCache = defaultSettings;
+    } else {
+      // التأكد من وجود حقول المظهر والتخفيض في الإعدادات القديمة
+      let changed = false;
+      if (!existingSettings.primaryColor) {
+        existingSettings.primaryColor = "#c5a880";
+        existingSettings.secondaryColor = "#141414";
+        existingSettings.bgColor = "#faf8f5";
+        existingSettings.accentColor = "#d4af37";
+        changed = true;
+      }
+      if (existingSettings.discountEnabled === undefined) {
+        existingSettings.discountEnabled = true;
+        existingSettings.discountThreshold = 5000;
+        existingSettings.discountType = "percent";
+        existingSettings.discountValue = 10;
+        existingSettings.discountPromoText = "خصم حصري 10% عند وصول مشترياتكِ إلى 5,000 ر.س فأكثر!";
+        changed = true;
+      }
+      if (changed) {
+        await this.localDB.setItem(STORAGE_KEYS.SETTINGS, existingSettings);
+        this.settingsCache = existingSettings;
+      }
+    }
+
+    // تصنيفات المتجر الأولية
+    const existingCats = await this.localDB.getItem(STORAGE_KEYS.CATEGORIES);
+    if (!existingCats || !Array.isArray(existingCats) || existingCats.length === 0) {
+      const initialCats = window.INITIAL_CATEGORIES || [
+        { id: "all", name: "جميع التشكيلات", icon: "✨", isAll: true },
+        { id: "bridal", name: "فساتين زفاف", icon: "👰" },
+        { id: "evening", name: "فساتين سهرة", icon: "✨" },
+        { id: "reception", name: "فساتين خطوبة وملكة", icon: "👑" },
+        { id: "abayas", name: "عبايات راقية ومناسبات", icon: "👘" },
+        { id: "casual_dresses", name: "فساتين خروج وعصرية", icon: "👗" },
+        { id: "flash_deals", name: "عروض فلاش الحصرية", icon: "⚡", isFlash: true }
+      ];
+      await this.localDB.setItem(STORAGE_KEYS.CATEGORIES, initialCats);
+      this.categoriesCache = initialCats;
     }
 
     // فساتين الكاتالوج الأولية
@@ -242,6 +297,35 @@ class RelasDataService {
       ];
       await this.localDB.setItem(STORAGE_KEYS.ORDERS, demoOrders);
       this.ordersCache = demoOrders;
+    }
+
+    // السلة الأولية
+    const existingCart = await this.localDB.getItem(STORAGE_KEYS.CART);
+    if (!existingCart) {
+      await this.localDB.setItem(STORAGE_KEYS.CART, []);
+      this.cartCache = [];
+    }
+
+    // الرسومات والتفصيلات الخاصة
+    const existingSketches = await this.localDB.getItem(STORAGE_KEYS.SKETCHES);
+    if (!existingSketches) {
+      await this.localDB.setItem(STORAGE_KEYS.SKETCHES, []);
+    }
+
+    // المستخدمين المسجلين
+    const existingUsers = await this.localDB.getItem(STORAGE_KEYS.USERS);
+    if (!existingUsers) {
+      const demoUsers = [
+        {
+          id: "usr-demo-01",
+          name: "سارة المنصور",
+          email: "sara@relas.com",
+          password: "password123",
+          phone: "0559876543",
+          createdAt: new Date().toISOString()
+        }
+      ];
+      await this.localDB.setItem(STORAGE_KEYS.USERS, demoUsers);
     }
   }
 
@@ -649,6 +733,288 @@ class RelasDataService {
     localStorage.setItem(STORAGE_KEYS.FIREBASE_CONFIG, JSON.stringify(config));
     this.initFirebaseFromStorage();
     return true;
+  }
+
+  // --- دوال إدارة التصنيفات والأقسام (Categories CRUD) ---
+
+  async getCategories() {
+    if (this.categoriesCache && Array.isArray(this.categoriesCache) && this.categoriesCache.length > 0) {
+      return this.categoriesCache;
+    }
+
+    let cats = await this.localDB.getItem(STORAGE_KEYS.CATEGORIES);
+    if (typeof cats === 'string') {
+      try { cats = JSON.parse(cats); } catch { cats = null; }
+    }
+
+    if (!Array.isArray(cats) || cats.length === 0) {
+      cats = window.INITIAL_CATEGORIES || [
+        { id: "all", name: "جميع التشكيلات", icon: "✨", isAll: true },
+        { id: "bridal", name: "فساتين زفاف", icon: "👰" },
+        { id: "evening", name: "فساتين سهرة", icon: "✨" },
+        { id: "reception", name: "فساتين خطوبة وملكة", icon: "👑" },
+        { id: "abayas", name: "عبايات راقية ومناسبات", icon: "👘" },
+        { id: "casual_dresses", name: "فساتين خروج وعصرية", icon: "👗" },
+        { id: "flash_deals", name: "عروض فلاش الحصرية", icon: "⚡", isFlash: true }
+      ];
+      await this.localDB.setItem(STORAGE_KEYS.CATEGORIES, cats);
+    }
+
+    this.categoriesCache = cats;
+    return this.categoriesCache;
+  }
+
+  async saveCategories(categoriesList) {
+    this.categoriesCache = [...categoriesList];
+    await this.localDB.setItem(STORAGE_KEYS.CATEGORIES, this.categoriesCache);
+    if (this.isFirebaseReady && this.db) {
+      this.syncDocToCloud("settings", "categories", { list: this.categoriesCache });
+    }
+    return this.categoriesCache;
+  }
+
+  async addCategory(catData) {
+    const categories = await this.getCategories();
+    const id = catData.id || "cat-" + Date.now();
+    const newCategory = {
+      ...catData,
+      id: id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || ("cat-" + Date.now()),
+      createdAt: new Date().toISOString()
+    };
+    categories.push(newCategory);
+    await this.saveCategories(categories);
+    return newCategory;
+  }
+
+  async updateCategory(id, updatedData) {
+    const categories = await this.getCategories();
+    const idx = categories.findIndex(c => String(c.id) === String(id));
+    if (idx !== -1) {
+      categories[idx] = { ...categories[idx], ...updatedData };
+      await this.saveCategories(categories);
+      return categories[idx];
+    }
+    throw new Error("التصنيف غير موجود");
+  }
+
+  async deleteCategory(id) {
+    let categories = await this.getCategories();
+    if (id === 'all') throw new Error("لا يمكن حذف التصنيف الرئيسي العام");
+    categories = categories.filter(c => String(c.id) !== String(id));
+    await this.saveCategories(categories);
+    return true;
+  }
+
+  // --- دوال نظام المستخدمين والتسجيل بالبريد (Email Auth & Users) ---
+
+  async getUsers() {
+    let users = await this.localDB.getItem(STORAGE_KEYS.USERS);
+    if (typeof users === 'string') {
+      try { users = JSON.parse(users); } catch { users = []; }
+    }
+    return Array.isArray(users) ? users : [];
+  }
+
+  async registerUser({ name, email, password, phone = "" }) {
+    if (!email || !password || !name) {
+      throw new Error("يرجى ملء جميع الحقول الإلزامية (الاسم، البريد، كلمة المرور).");
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const users = await this.getUsers();
+    
+    if (users.some(u => u.email === cleanEmail)) {
+      throw new Error("هذا البريد الإلكتروني مسجل مسبقاً، يمكنكِ تسجيل الدخول مباشرة.");
+    }
+
+    const newUser = {
+      id: "usr-" + Date.now(),
+      name: name.trim(),
+      email: cleanEmail,
+      password: password, // محلياً في IndexedDB
+      phone: phone.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    users.push(newUser);
+    await this.localDB.setItem(STORAGE_KEYS.USERS, users);
+
+    if (this.isFirebaseReady && this.db) {
+      this.syncDocToCloud("users", newUser.id, {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        createdAt: newUser.createdAt
+      });
+    }
+
+    // تسجيل الدخول التلقائي
+    const safeUser = { id: newUser.id, name: newUser.name, email: newUser.email, phone: newUser.phone };
+    await this.setCurrentUser(safeUser);
+    return safeUser;
+  }
+
+  async loginUser({ email, password }) {
+    if (!email || !password) {
+      throw new Error("يرجى إدخال البريد الإلكتروني وكلمة المرور.");
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const users = await this.getUsers();
+    const found = users.find(u => u.email === cleanEmail && u.password === password);
+
+    if (!found) {
+      throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+    }
+
+    const safeUser = { id: found.id, name: found.name, email: found.email, phone: found.phone };
+    await this.setCurrentUser(safeUser);
+    return safeUser;
+  }
+
+  async setCurrentUser(user) {
+    this.currentUserCache = user;
+    if (user) {
+      await this.localDB.setItem(STORAGE_KEYS.CURRENT_USER, user);
+    } else {
+      await this.localDB.removeItem(STORAGE_KEYS.CURRENT_USER);
+    }
+  }
+
+  async getCurrentUser() {
+    if (this.currentUserCache) return this.currentUserCache;
+    const user = await this.localDB.getItem(STORAGE_KEYS.CURRENT_USER);
+    this.currentUserCache = user || null;
+    return this.currentUserCache;
+  }
+
+  async logoutUser() {
+    this.currentUserCache = null;
+    await this.localDB.removeItem(STORAGE_KEYS.CURRENT_USER);
+    return true;
+  }
+
+  // --- دوال سلة المشتريات المتكاملة (Shopping Cart) ---
+
+  async getCart() {
+    if (this.cartCache && Array.isArray(this.cartCache)) {
+      return this.cartCache;
+    }
+    let cart = await this.localDB.getItem(STORAGE_KEYS.CART);
+    if (typeof cart === 'string') {
+      try { cart = JSON.parse(cart); } catch { cart = []; }
+    }
+    this.cartCache = Array.isArray(cart) ? cart : [];
+    return this.cartCache;
+  }
+
+  async saveCart(items) {
+    this.cartCache = Array.isArray(items) ? [...items] : [];
+    await this.localDB.setItem(STORAGE_KEYS.CART, this.cartCache);
+    return this.cartCache;
+  }
+
+  async addToCart(item) {
+    const cart = await this.getCart();
+    const existingIndex = cart.findIndex(c => 
+      c.dressId === item.dressId && 
+      (!item.customNotes || c.customNotes === item.customNotes) &&
+      (!item.sketchUrl || c.sketchUrl === item.sketchUrl)
+    );
+
+    if (existingIndex !== -1) {
+      cart[existingIndex].quantity = (cart[existingIndex].quantity || 1) + (item.quantity || 1);
+    } else {
+      const cartItemId = "cart-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      cart.push({
+        cartItemId,
+        dressId: item.dressId || item.id,
+        title: item.title,
+        price: parseFloat(item.price) || 0,
+        image: item.image || (item.images && item.images[0]) || '',
+        quantity: item.quantity || 1,
+        selectedColor: item.selectedColor || '',
+        categoryName: item.categoryName || 'ريلاس كوتور',
+        customNotes: item.customNotes || '',
+        sketchUrl: item.sketchUrl || null,
+        addedAt: new Date().toISOString()
+      });
+    }
+
+    await this.saveCart(cart);
+    return cart;
+  }
+
+  async updateCartQuantity(cartItemId, delta) {
+    let cart = await this.getCart();
+    const idx = cart.findIndex(c => c.cartItemId === cartItemId);
+    if (idx !== -1) {
+      cart[idx].quantity = (cart[idx].quantity || 1) + delta;
+      if (cart[idx].quantity <= 0) {
+        cart.splice(idx, 1);
+      }
+      await this.saveCart(cart);
+    }
+    return cart;
+  }
+
+  async removeFromCart(cartItemId) {
+    let cart = await this.getCart();
+    cart = cart.filter(c => c.cartItemId !== cartItemId);
+    await this.saveCart(cart);
+    return cart;
+  }
+
+  async clearCart() {
+    this.cartCache = [];
+    await this.localDB.setItem(STORAGE_KEYS.CART, []);
+    return [];
+  }
+
+  // --- دوال التفصيل والرسم الخاص (Custom Sketches & Tailoring Studio) ---
+
+  async getCustomSketches() {
+    let list = await this.localDB.getItem(STORAGE_KEYS.SKETCHES);
+    if (typeof list === 'string') {
+      try { list = JSON.parse(list); } catch { list = []; }
+    }
+    return Array.isArray(list) ? list : [];
+  }
+
+  async saveCustomSketch(sketchData) {
+    const sketchId = "SKT-" + Date.now();
+    const newSketch = {
+      id: sketchId,
+      customerName: sketchData.customerName || "زبونة ريلاس",
+      customerPhone: sketchData.customerPhone || "",
+      dressRef: sketchData.dressRef || "طلب تفصيل حر برسمة خاصة",
+      sketchImage: sketchData.sketchImage || "", // Canvas DataURL أو رابط
+      notes: sketchData.notes || "",
+      fabric: sketchData.fabric || "",
+      color: sketchData.color || "",
+      createdAt: new Date().toISOString()
+    };
+
+    const sketches = await this.getCustomSketches();
+    sketches.unshift(newSketch);
+    await this.localDB.setItem(STORAGE_KEYS.SKETCHES, sketches);
+
+    // إضافة طلب في قائمة الطلبات حتى يظهر فوراً لدى المدير في لوحة التحكم
+    await this.saveCustomOrder({
+      customerName: newSketch.customerName,
+      customerPhone: newSketch.customerPhone,
+      dressType: `طلب تفصيل برسمة خاصة (${newSketch.dressRef})`,
+      notes: `[رسمة وتفصيلة خاصة 🎨]: ${newSketch.notes} | القماش: ${newSketch.fabric} | اللون: ${newSketch.color}`,
+      sketchId: newSketch.id,
+      sketchImage: newSketch.sketchImage
+    });
+
+    if (this.isFirebaseReady && this.db) {
+      this.syncDocToCloud("sketches", sketchId, newSketch);
+    }
+
+    return newSketch;
   }
 
   // إنشاء رابط واتساب منسق

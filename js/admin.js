@@ -6,6 +6,8 @@
 let currentAdminTab = 'overview';
 let allDresses = [];
 let allOrders = [];
+let allCategories = [];
+let allSketches = [];
 let storeSettings = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -65,14 +67,22 @@ async function loadDashboardData() {
   storeSettings = await window.relasDataService.getSettings();
   allDresses = await window.relasDataService.getDresses();
   allOrders = await window.relasDataService.getOrders();
+  allCategories = await window.relasDataService.getCategories();
+  allSketches = await window.relasDataService.getCustomSketches();
 
   updateStatsCards();
   renderDressesTable();
   renderOrdersTable();
+  renderCategoriesTable();
+  populateCategoriesDropdown();
+  renderSketchesTable();
   populateSettingsForm();
+  populateThemeForm();
   checkFirebaseStatus();
   bindTabNavigation();
   bindDressModals();
+  bindCategoryEvents();
+  bindThemeEvents();
   bindSettingsEvents();
 }
 
@@ -330,11 +340,8 @@ function bindDressModals() {
         const dressId = document.getElementById('dressFormId').value;
         const title = document.getElementById('dressInputTitle').value.trim();
         const category = document.getElementById('dressInputCategory').value;
-        const categoryMap = {
-          bridal: 'فساتين زفاف',
-          evening: 'فساتين سهرة',
-          reception: 'فساتين خطوبة وملكة'
-        };
+        const foundCat = (allCategories || []).find(c => c.id === category);
+        const categoryName = foundCat ? foundCat.name : (category === 'bridal' ? 'فساتين زفاف' : category === 'evening' ? 'فساتين سهرة' : 'ريلاس كوتور');
         const price = parseFloat(document.getElementById('dressInputPrice').value) || 0;
         const oldPrice = parseFloat(document.getElementById('dressInputOldPrice').value) || null;
         const description = document.getElementById('dressInputDesc').value.trim();
@@ -364,7 +371,7 @@ function bindDressModals() {
         const dressData = {
           title,
           category,
-          categoryName: categoryMap[category] || 'ريلاس كوتور',
+          categoryName,
           price,
           oldPrice,
           description,
@@ -642,6 +649,19 @@ function populateSettingsForm() {
   document.getElementById('settingsAnnouncement').value = storeSettings.announcementText || '';
   document.getElementById('settingsAdminPin').value = '';
 
+  // إعدادات نظام التخفيض الشرطي
+  const discountEnabledEl = document.getElementById('settingsDiscountEnabled');
+  const discountThresholdEl = document.getElementById('settingsDiscountThreshold');
+  const discountTypeEl = document.getElementById('settingsDiscountType');
+  const discountValueEl = document.getElementById('settingsDiscountValue');
+  const discountPromoEl = document.getElementById('settingsDiscountPromoText');
+
+  if (discountEnabledEl) discountEnabledEl.checked = !!storeSettings.discountEnabled;
+  if (discountThresholdEl) discountThresholdEl.value = storeSettings.discountThreshold || 5000;
+  if (discountTypeEl) discountTypeEl.value = storeSettings.discountType || 'percentage';
+  if (discountValueEl) discountValueEl.value = storeSettings.discountValue || 15;
+  if (discountPromoEl) discountPromoEl.value = storeSettings.discountPromoText || 'أضيفي بقيمة {remaining} ر.س إضافية واحصلي على خصم {discount} فوراً!';
+
   // إعدادات Firebase
   const fbConfig = window.relasDataService.getFirebaseConfig();
   if (fbConfig) {
@@ -714,6 +734,13 @@ function bindSettingsEvents() {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const enteredNewPin = document.getElementById('settingsAdminPin').value.trim();
+
+      const discountEnabled = document.getElementById('settingsDiscountEnabled') ? document.getElementById('settingsDiscountEnabled').checked : false;
+      const discountThreshold = document.getElementById('settingsDiscountThreshold') ? parseFloat(document.getElementById('settingsDiscountThreshold').value) || 5000 : 5000;
+      const discountType = document.getElementById('settingsDiscountType') ? document.getElementById('settingsDiscountType').value : 'percentage';
+      const discountValue = document.getElementById('settingsDiscountValue') ? parseFloat(document.getElementById('settingsDiscountValue').value) || 15 : 15;
+      const discountPromoText = document.getElementById('settingsDiscountPromoText') ? document.getElementById('settingsDiscountPromoText').value.trim() : '';
+
       const updated = {
         ...storeSettings,
         storeName: document.getElementById('settingsStoreName').value.trim(),
@@ -722,7 +749,12 @@ function bindSettingsEvents() {
         phoneNumber: document.getElementById('settingsPhone').value.trim(),
         email: document.getElementById('settingsEmail').value.trim(),
         city: document.getElementById('settingsCity').value.trim(),
-        announcementText: document.getElementById('settingsAnnouncement').value.trim()
+        announcementText: document.getElementById('settingsAnnouncement').value.trim(),
+        discountEnabled,
+        discountThreshold,
+        discountType,
+        discountValue,
+        discountPromoText
       };
 
       if (enteredNewPin) {
@@ -732,7 +764,7 @@ function bindSettingsEvents() {
       await window.relasDataService.saveSettings(updated);
       storeSettings = updated;
       updateStatsCards();
-      alert("✅ تم حفظ وتحديث كافة إعدادات المتجر ورقم الواتساب بنجاح! سيتم تطبيقها فوراً على جميع صفحات الموقع.");
+      alert("✅ تم حفظ وتحديث كافة إعدادات المتجر والتخفيض الشرطي ورقم الواتساب بنجاح! سيتم تطبيقها فوراً على جميع صفحات الموقع.");
     });
   }
 
@@ -902,3 +934,470 @@ function checkFirebaseStatus() {
     }
   }
 }
+
+// ============================================================================
+// --- إدارة التصنيفات والأقسام (Categories Management) ---
+// ============================================================================
+
+function populateCategoriesDropdown() {
+  const select = document.getElementById('dressInputCategory');
+  if (!select) return;
+
+  const cats = allCategories.filter(c => c.id !== 'all');
+  select.innerHTML = cats.map(c => `
+    <option value="${c.id}">${c.icon ? c.icon + ' ' : ''}${c.name}${c.isFlash ? ' (⚡ فلاش)' : ''}</option>
+  `).join('');
+}
+
+function renderCategoriesTable() {
+  const tbody = document.getElementById('categoriesTableBody');
+  if (!tbody) return;
+
+  if (allCategories.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-500 text-xs">لا توجد تصنيفات حالياً.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = allCategories.map((cat) => {
+    const dressCount = cat.id === 'all' 
+      ? allDresses.length 
+      : allDresses.filter(d => d.category === cat.id).length;
+    
+    const isAll = cat.id === 'all';
+    return `
+      <tr class="border-b border-gray-100 hover:bg-amber-50/30 transition text-sm">
+        <td class="py-3 px-4 text-center text-xl">${cat.icon || '✨'}</td>
+        <td class="py-3 px-4 font-bold text-gray-900">${cat.name}</td>
+        <td class="py-3 px-4 font-mono text-xs text-gray-500" dir="ltr">${cat.id}</td>
+        <td class="py-3 px-4">
+          ${cat.isFlash 
+            ? '<span class="bg-amber-100 text-amber-900 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-300">⚡ عرض فلاش وميض</span>' 
+            : '<span class="bg-gray-100 text-gray-700 text-xs px-2.5 py-1 rounded-full">قسم اعتيادي</span>'}
+        </td>
+        <td class="py-3 px-4 font-semibold text-gray-700">${dressCount} فستان</td>
+        <td class="py-3 px-4 text-left">
+          ${isAll ? '<span class="text-gray-400 text-xs italic">افتراضي أساسي</span>' : `
+            <button onclick="confirmDeleteCategory('${cat.id}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition text-xs font-bold" title="حذف التصنيف">
+              🗑️ حذف
+            </button>
+          `}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function bindCategoryEvents() {
+  const form = document.getElementById('categoryAddForm');
+  if (form && !window._categoryFormBound) {
+    window._categoryFormBound = true;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('catInputName').value.trim();
+      let id = document.getElementById('catInputId').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+      const icon = document.getElementById('catInputIcon').value.trim();
+      const isFlash = document.getElementById('catInputIsFlash').checked;
+
+      if (!name || !id) {
+        alert("يرجى إدخال اسم التصنيف والمعرف البرمجي.");
+        return;
+      }
+
+      if (allCategories.some(c => c.id === id)) {
+        alert(`المعرف البرمجي (${id}) مستخدم مسبقاً! يرجى اختيار معرف إنجليزي آخر.`);
+        return;
+      }
+
+      try {
+        await window.relasDataService.addCategory({
+          id,
+          name,
+          icon: icon || '✨',
+          isFlash: !!isFlash
+        });
+
+        form.reset();
+        allCategories = await window.relasDataService.getCategories();
+        renderCategoriesTable();
+        populateCategoriesDropdown();
+        showAdminNotification(`✨ تم إضافة التصنيف (${name}) بنجاح! سيظهر فوراً كفلتر وتبويب فلاش في المتجر.`);
+      } catch (err) {
+        alert(`تعذر إضافة التصنيف: ${err.message}`);
+      }
+    });
+  }
+}
+
+window.confirmDeleteCategory = async function(catId) {
+  const cat = allCategories.find(c => c.id === catId);
+  if (!cat) return;
+
+  if (confirm(`هل أنتِ متأكدة من حذف التصنيف "${cat.name}"؟`)) {
+    await window.relasDataService.deleteCategory(catId);
+    allCategories = await window.relasDataService.getCategories();
+    renderCategoriesTable();
+    populateCategoriesDropdown();
+    showAdminNotification(`🗑️ تم حذف التصنيف "${cat.name}".`, 'info');
+  }
+};
+
+// ============================================================================
+// --- مظهر وهوية الموقع والبنرات (Theme & Appearance) ---
+// ============================================================================
+
+const THEME_PRESETS = {
+  royal_gold: {
+    primaryColor: '#b08b57',
+    secondaryColor: '#141414',
+    bgColor: '#f8f6f2',
+    accentColor: '#d97706',
+    announcementBg: '#141414',
+    announcementColor: '#ffffff'
+  },
+  blush_rose: {
+    primaryColor: '#d9778f',
+    secondaryColor: '#2a1720',
+    bgColor: '#fdf6f7',
+    accentColor: '#f43f5e',
+    announcementBg: '#831843',
+    announcementColor: '#fff1f2'
+  },
+  emerald_luxe: {
+    primaryColor: '#0d9488',
+    secondaryColor: '#042f2e',
+    bgColor: '#f0fdfa',
+    accentColor: '#10b981',
+    announcementBg: '#064e3b',
+    announcementColor: '#ccfbf1'
+  },
+  noir_elite: {
+    primaryColor: '#c5a880',
+    secondaryColor: '#000000',
+    bgColor: '#18181b',
+    accentColor: '#fbbf24',
+    announcementBg: '#09090b',
+    announcementColor: '#fef08a'
+  }
+};
+
+window.applyThemePreset = function(presetKey) {
+  const p = THEME_PRESETS[presetKey];
+  if (!p) return;
+
+  setThemeInputValues(p);
+  showAdminNotification(`🎨 تم تطبيق ستايل "${presetKey}"! انقري على زر "حفظ وتطبيق المظهر" بالأسفل لتثبيته.`);
+};
+
+function setThemeInputValues(t) {
+  const setPair = (colorId, hexId, val) => {
+    if (val) {
+      const cEl = document.getElementById(colorId);
+      const hEl = document.getElementById(hexId);
+      if (cEl) cEl.value = val;
+      if (hEl) hEl.value = val;
+    }
+  };
+
+  setPair('themePrimaryColor', 'themePrimaryColorHex', t.primaryColor);
+  setPair('themeSecondaryColor', 'themeSecondaryColorHex', t.secondaryColor);
+  setPair('themeBgColor', 'themeBgColorHex', t.bgColor);
+  setPair('themeAccentColor', 'themeAccentColorHex', t.accentColor);
+  setPair('themeAnnouncementBg', 'themeAnnouncementBgHex', t.announcementBg);
+  setPair('themeAnnouncementColor', 'themeAnnouncementColorHex', t.announcementColor);
+
+  updateAnnouncementPreview();
+}
+
+function updateAnnouncementPreview() {
+  const box = document.getElementById('announcementPreviewBox');
+  const bg = document.getElementById('themeAnnouncementBg')?.value || '#141414';
+  const color = document.getElementById('themeAnnouncementColor')?.value || '#ffffff';
+  const text = document.getElementById('themeAnnouncementText')?.value || '✨ شحن وتوصيل مجاني لكافة مدن المملكة';
+
+  if (box) {
+    box.style.backgroundColor = bg;
+    box.style.color = color;
+    box.textContent = text;
+  }
+}
+
+function populateThemeForm() {
+  setThemeInputValues({
+    primaryColor: storeSettings.primaryColor || '#b08b57',
+    secondaryColor: storeSettings.secondaryColor || '#141414',
+    bgColor: storeSettings.bgColor || '#f8f6f2',
+    accentColor: storeSettings.accentColor || '#d97706',
+    announcementBg: storeSettings.announcementBg || '#141414',
+    announcementColor: storeSettings.announcementColor || '#ffffff'
+  });
+
+  const heroImg = document.getElementById('themeHeroImage');
+  const heroPrev = document.getElementById('themeHeroBannerPreview');
+  const heroTitle = document.getElementById('themeHeroTitle');
+  const heroSub = document.getElementById('themeHeroSubtitle');
+  const heroPrevTitle = document.getElementById('themeHeroPreviewTitle');
+  const heroPrevSub = document.getElementById('themeHeroPreviewSubtitle');
+  const annText = document.getElementById('themeAnnouncementText');
+
+  const defaultHero = 'https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=2000&q=85';
+  if (heroImg) heroImg.value = storeSettings.heroImage || '';
+  if (heroPrev) heroPrev.src = storeSettings.heroImage || defaultHero;
+  if (heroTitle) heroTitle.value = storeSettings.heroTitle || 'دار ريلاس للأزياء الراقية';
+  if (heroSub) heroSub.value = storeSettings.heroSubtitle || 'تصاميم تخطف الأنظار، تفصيل هوت كوتور حسب مقاسكِ الدقيق، وأرقى الخامات العالمية';
+  if (heroPrevTitle) heroPrevTitle.textContent = heroTitle ? heroTitle.value : 'دار ريلاس للأزياء الراقية';
+  if (heroPrevSub) heroPrevSub.textContent = heroSub ? heroSub.value : 'تصاميم تخطف الأنظار';
+  if (annText) annText.value = storeSettings.announcementText || '✨ شحن وتوصيل وتفصيل مجاني لكافة مدن المملكة | تصاميم هوت كوتور خاصة بكِ';
+
+  updateAnnouncementPreview();
+}
+
+function bindThemeEvents() {
+  // مزامنة حقول الألوان مع نصوص الهكس
+  const pairs = [
+    ['themePrimaryColor', 'themePrimaryColorHex'],
+    ['themeSecondaryColor', 'themeSecondaryColorHex'],
+    ['themeBgColor', 'themeBgColorHex'],
+    ['themeAccentColor', 'themeAccentColorHex'],
+    ['themeAnnouncementBg', 'themeAnnouncementBgHex'],
+    ['themeAnnouncementColor', 'themeAnnouncementColorHex']
+  ];
+
+  pairs.forEach(([cId, hId]) => {
+    const cEl = document.getElementById(cId);
+    const hEl = document.getElementById(hId);
+    if (cEl && hEl) {
+      cEl.addEventListener('input', () => {
+        hEl.value = cEl.value;
+        if (cId.includes('Announcement')) updateAnnouncementPreview();
+      });
+      hEl.addEventListener('input', () => {
+        if (/^#[0-9A-Fa-f]{6}$/.test(hEl.value)) {
+          cEl.value = hEl.value;
+          if (cId.includes('Announcement')) updateAnnouncementPreview();
+        }
+      });
+    }
+  });
+
+  const heroUrlInput = document.getElementById('themeHeroImage');
+  const heroPrev = document.getElementById('themeHeroBannerPreview');
+  if (heroUrlInput && heroPrev) {
+    heroUrlInput.addEventListener('input', () => {
+      if (heroUrlInput.value.trim()) {
+        heroPrev.src = heroUrlInput.value.trim();
+      }
+    });
+  }
+
+  const heroTitleInput = document.getElementById('themeHeroTitle');
+  const heroPrevTitle = document.getElementById('themeHeroPreviewTitle');
+  if (heroTitleInput && heroPrevTitle) {
+    heroTitleInput.addEventListener('input', () => {
+      heroPrevTitle.textContent = heroTitleInput.value;
+    });
+  }
+
+  const heroSubInput = document.getElementById('themeHeroSubtitle');
+  const heroPrevSub = document.getElementById('themeHeroPreviewSubtitle');
+  if (heroSubInput && heroPrevSub) {
+    heroSubInput.addEventListener('input', () => {
+      heroPrevSub.textContent = heroSubInput.value;
+    });
+  }
+
+  const annTextInput = document.getElementById('themeAnnouncementText');
+  if (annTextInput) {
+    annTextInput.addEventListener('input', () => {
+      updateAnnouncementPreview();
+    });
+  }
+
+  // رفع بنر الواجهة
+  const bannerFileInput = document.getElementById('themeBannerFileInput');
+  if (bannerFileInput) {
+    bannerFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        const reader = new FileReader();
+        reader.onload = (re) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxW = 1600;
+            let w = img.width;
+            let h = img.height;
+            if (w > maxW) {
+              h = Math.round((h * maxW) / w);
+              w = maxW;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+            if (heroPrev) heroPrev.src = dataUrl;
+            if (heroUrlInput) heroUrlInput.value = dataUrl;
+            showAdminNotification('📸 تم تجهيز صورة البنر بنجاح! لا تنسي النقر على زر الحفظ بالأسفل.');
+          };
+          img.src = re.target.result;
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        alert("فشل في معالجة صورة البنر.");
+      }
+    });
+  }
+
+  // حفظ استمارة المظهر
+  const themeForm = document.getElementById('storeThemeForm');
+  if (themeForm && !window._themeFormBound) {
+    window._themeFormBound = true;
+    themeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const updated = {
+        ...storeSettings,
+        primaryColor: document.getElementById('themePrimaryColor').value,
+        secondaryColor: document.getElementById('themeSecondaryColor').value,
+        bgColor: document.getElementById('themeBgColor').value,
+        accentColor: document.getElementById('themeAccentColor').value,
+        heroImage: document.getElementById('themeHeroImage').value.trim(),
+        heroTitle: document.getElementById('themeHeroTitle').value.trim(),
+        heroSubtitle: document.getElementById('themeHeroSubtitle').value.trim(),
+        announcementBg: document.getElementById('themeAnnouncementBg').value,
+        announcementColor: document.getElementById('themeAnnouncementColor').value,
+        announcementText: document.getElementById('themeAnnouncementText').value.trim()
+      };
+
+      await window.relasDataService.saveSettings(updated);
+      storeSettings = updated;
+      showAdminNotification('🎨✨ تم حفظ وتطبيق المظهر والبنرات بنجاح على المتجر!');
+    });
+  }
+}
+
+// ============================================================================
+// --- رسومات وتفاصيل الزبونات الخاصة (Custom Sketches) ---
+// ============================================================================
+
+function renderSketchesTable() {
+  const tbody = document.getElementById('sketchesTableBody');
+  if (!tbody) return;
+
+  if (allSketches.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500 text-xs">لا توجد رسومات أو تفاصيل مرفوعة من الزبونات حتى الآن.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = allSketches.map((sk, index) => {
+    return `
+      <tr class="border-b border-gray-100 hover:bg-amber-50/30 transition text-sm">
+        <td class="py-3 px-4 font-mono text-xs text-gray-400">${index + 1}</td>
+        <td class="py-3 px-4">
+          <img src="${sk.image}" alt="رسمة الزبونة" class="w-14 h-14 object-contain bg-white rounded border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition" onclick="viewSketchDetail('${sk.id}')" />
+        </td>
+        <td class="py-3 px-4">
+          <p class="font-bold text-gray-900">${sk.customerName || 'زبونة ريلاس'}</p>
+          <span class="font-mono text-xs text-emerald-700" dir="ltr">${sk.customerPhone}</span>
+        </td>
+        <td class="py-3 px-4 text-xs text-gray-600">
+          <div>${sk.date}</div>
+          <span class="text-amber-800 font-bold">${sk.eventDate ? 'المناسبة: ' + sk.eventDate : ''}</span>
+        </td>
+        <td class="py-3 px-4 text-xs">
+          <p class="font-bold text-gray-800">${sk.fabricType || 'قماش مخصص'}</p>
+          <p class="text-gray-500 line-clamp-1">${sk.notes || 'بدون ملاحظات إضافية'}</p>
+        </td>
+        <td class="py-3 px-4 text-left">
+          <div class="flex items-center justify-end gap-1.5">
+            <button onclick="viewSketchDetail('${sk.id}')" class="px-2.5 py-1 bg-neutral-900 text-white hover:bg-amber-700 text-xs rounded transition font-bold" title="عرض التفاصيل والرسمة بالكامل">
+              🔍 استعراض
+            </button>
+            <button onclick="sendSketchWhatsApp('${sk.id}')" class="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 text-xs rounded transition" title="مراسلة الزبونة على الواتساب بخصوص الرسمة">
+              💬 واتساب
+            </button>
+            <button onclick="confirmDeleteSketch('${sk.id}')" class="p-1 text-red-500 hover:bg-red-50 rounded" title="حذف">
+              🗑️
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.viewSketchDetail = function(sketchId) {
+  const sk = allSketches.find(s => s.id === sketchId);
+  if (!sk) return;
+
+  const modal = document.getElementById('sketchDetailModal');
+  const content = document.getElementById('sketchDetailContent');
+  if (!modal || !content) return;
+
+  content.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+      <div class="bg-gray-100 p-3 rounded-xl border border-gray-300 text-center">
+        <img src="${sk.image}" alt="رسمة التفصيل" class="max-h-[380px] w-auto mx-auto rounded shadow bg-white" />
+        <a href="${sk.image}" download="sketch-${sk.customerName || 'client'}.png" class="inline-block mt-3 text-xs font-bold text-amber-800 hover:underline">
+          📥 تحميل الرسمة بدقة كاملة على الجهاز
+        </a>
+      </div>
+
+      <div class="space-y-4 text-right">
+        <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-200">
+          <h4 class="font-bold text-sm text-amber-950 mb-1">معلومات الزبونة والطلب:</h4>
+          <p class="text-xs text-gray-700"><strong>الاسم:</strong> ${sk.customerName || '-'}</p>
+          <p class="text-xs text-gray-700 mt-1"><strong>الهاتف:</strong> <span dir="ltr">${sk.customerPhone || '-'}</span></p>
+          <p class="text-xs text-gray-700 mt-1"><strong>تاريخ الإرسال:</strong> ${sk.date || '-'}</p>
+          ${sk.eventDate ? `<p class="text-xs text-gray-700 mt-1"><strong>موعد المناسبة:</strong> ${sk.eventDate}</p>` : ''}
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-2">
+          <h4 class="font-bold text-xs text-gray-900">نوع القماش والخامات المطلوبة:</h4>
+          <p class="text-xs text-gray-700 bg-gray-50 p-2.5 rounded border border-gray-100">${sk.fabricType || 'غير محدد'}</p>
+          
+          <h4 class="font-bold text-xs text-gray-900 pt-2">ملاحظات وقصة الفستان:</h4>
+          <p class="text-xs text-gray-700 bg-gray-50 p-2.5 rounded border border-gray-100 whitespace-pre-wrap">${sk.notes || 'لا توجد ملاحظات إضافية'}</p>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3">
+          <button onclick="sendSketchWhatsApp('${sk.id}')" class="w-full py-3 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition flex items-center justify-center gap-2 shadow">
+            <span>مراسلة الزبونة عبر الواتساب فوراً</span> 💬📲
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+};
+
+window.sendSketchWhatsApp = async function(sketchId) {
+  const sk = allSketches.find(s => s.id === sketchId);
+  if (!sk) return;
+
+  const msg = `مرحباً أستاذة *${sk.customerName}* من دار ريلاس للأزياء الراقية ✨،
+استلمنا الرسمة والتفصيلة الخاصة بكِ (${sk.fabricType || 'تفصيل خاص'}).
+يسعدنا دراسة تفاصيل تصميمكِ وتأكيد إمكانية تنفيذه مع أفضل الأقمشة العالمية. هل أنتِ جاهزة للتواصل بخصوص المقاسات والتكلفة؟`;
+
+  const link = await window.relasDataService.generateWhatsAppLink(msg, sk.customerPhone);
+  window.open(link, '_blank');
+};
+
+window.confirmDeleteSketch = async function(sketchId) {
+  if (confirm("هل أنتِ متأكدة من حذف هذه الرسمة؟")) {
+    allSketches = allSketches.filter(s => s.id !== sketchId);
+    if (window.relasLocalDB) {
+      await window.relasLocalDB.set('sketches', allSketches);
+    } else {
+      localStorage.setItem('relas_custom_sketches', JSON.stringify(allSketches));
+    }
+    renderSketchesTable();
+    showAdminNotification('🗑️ تم حذف الرسمة بنجاح.', 'info');
+  }
+};
+

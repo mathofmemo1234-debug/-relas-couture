@@ -3,6 +3,16 @@
  * بيانات الفساتين والإعدادات الأولية لمتجر ريلاس للأزياء
  */
 
+const INITIAL_CATEGORIES = [
+  { id: "all", name: "جميع التشكيلات", icon: "✨", isAll: true },
+  { id: "bridal", name: "فساتين زفاف", icon: "👰" },
+  { id: "evening", name: "فساتين سهرة", icon: "✨" },
+  { id: "reception", name: "فساتين خطوبة وملكة", icon: "👑" },
+  { id: "abayas", name: "عبايات راقية ومناسبات", icon: "👘" },
+  { id: "casual_dresses", name: "فساتين خروج وعصرية", icon: "👗" },
+  { id: "flash_deals", name: "عروض فلاش الحصرية", icon: "⚡", isFlash: true }
+];
+
 const INITIAL_SETTINGS = {
   storeName: "ريلاس لفساتين السهرة والزفاف",
   storeTagline: "لكونكِ أنثى راقية... تشرفنا في تصميم وتفصيل قطعتكِ الخاصة",
@@ -16,7 +26,25 @@ const INITIAL_SETTINGS = {
   instagramUrl: "https://instagram.com",
   snapchatUrl: "https://snapchat.com",
   tiktokUrl: "https://tiktok.com",
-  adminPin: "memo1974" // كلمة المرور الافتراضية للوحة التحكم
+  adminPin: "memo1974", // كلمة المرور الافتراضية للوحة التحكم
+
+  // تخصيص المظهر والهوية البصرية
+  primaryColor: "#c5a880",
+  secondaryColor: "#141414",
+  bgColor: "#faf8f5",
+  accentColor: "#d4af37",
+  heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=85",
+  heroTitle: "لكونكِ أنثى راقية...",
+  heroSubtitle: "في دار ريلاس للأزياء، نجمع بين فخامة التصاميم العالمية لفساتين السهرة والزفاف والعبايات وأدق تفاصيل التفصيل الحصري حسب مقاساتكِ الخاصة مع استوديو القياسات الذكي.",
+  announcementBg: "#000000",
+  announcementColor: "#fde68a",
+
+  // نظام التخفيض التلقائي للسلة (Threshold Discount)
+  discountEnabled: true,
+  discountThreshold: 5000,
+  discountType: "percent", // percent | fixed
+  discountValue: 10,
+  discountPromoText: "خصم حصري 10% عند وصول مشترياتكِ إلى 5,000 ر.س فأكثر!"
 };
 
 const INITIAL_DRESSES = [
@@ -150,6 +178,72 @@ const INITIAL_DRESSES = [
       "https://images.unsplash.com/photo-1511280394243-52467d0259b3?auto=format&fit=crop&w=1000&q=85"
     ],
     badge: "نعومة وفخامة"
+  },
+  {
+    id: "relas-07",
+    title: "عباية كوتور ملكية 'المها' بتطريز الحرير والشك اليدوي (Al-Maha Royal Abaya)",
+    category: "abayas",
+    categoryName: "عبايات راقية ومناسبات",
+    price: 2800,
+    oldPrice: 3400,
+    featured: true,
+    isNew: true,
+    rating: 5.0,
+    reviewsCount: 16,
+    description: "عباية مناسبات فاخرة منسوجة من قماش كريب كوتور ياباني نخب أول مع تطريزات دقيقة بالشك اليدوي وخيوط الحرير على الأكمام وأطراف الياقة مع طرحة حرير مطابقة.",
+    fabric: "كريب كوتور أسود ياباني، شك يدوي كريستالي، حرير طبيعي",
+    silhouette: "قصة كلوش ملكية انسيابية",
+    neckline: "ياقة لف رسمية كلاسيكية",
+    colors: ["أسود فاحم ملكي (Jet Black)"],
+    images: [
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1000&q=85",
+      "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=1000&q=85"
+    ],
+    badge: "الأكثر طلباً 👘"
+  },
+  {
+    id: "relas-08",
+    title: "فستان خروج راقٍ 'أستوريا' بنقوش ناعمة (Astoria Casual Chic Dress)",
+    category: "casual_dresses",
+    categoryName: "فساتين خروج وعصرية",
+    price: 1850,
+    oldPrice: 2200,
+    featured: true,
+    isNew: true,
+    rating: 4.9,
+    reviewsCount: 22,
+    description: "فستان عصري أنيق ومريح لخروجات بعد الظهر والمناسبات العائلية الراقية، بقصة بليسيه ناعمة مع حزام خصر جلدي رفيع يمنحكِ قواماً رشيقاً ومظهراً مفعماً بالحيوية.",
+    fabric: "كريب شيفون فرنسي مبطن بالحرير الناعم",
+    silhouette: "ميدي انسيابي مع كسرات بليسيه",
+    neckline: "ياقة قميص كلاسيكية بأزرار لؤلؤية",
+    colors: ["بيج كريمي", "أزرق سماوي ناعم", "موكا دافئ"],
+    images: [
+      "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=1000&q=85",
+      "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=1000&q=85"
+    ],
+    badge: "أناقة يومية راقية ✨"
+  },
+  {
+    id: "relas-09",
+    title: "⚡ فستان سهرة 'جولدن نايت' الملكي - عرض فلاش استثنائي",
+    category: "flash_deals",
+    categoryName: "عروض فلاش الحصرية",
+    price: 2450,
+    oldPrice: 4200,
+    featured: true,
+    isNew: true,
+    rating: 5.0,
+    reviewsCount: 38,
+    description: "عرض فلاش حصري لفترة محدودة! فستان سهرة استثنائي بتطريزات براقة تعكس الأناقة في كل خطوة مع خصم يتجاوز 40% فقط للطلبات خلال فترة العرض.",
+    fabric: "تول فرنسي مطرز بالكريستال الذهبي، كريب كوتور",
+    silhouette: "حورية البحر درابيه جانبي",
+    neckline: "Off-Shoulder أنيق",
+    colors: ["ذهبي ملكي", "أسود وباييت"],
+    images: [
+      "https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?auto=format&fit=crop&w=1000&q=85",
+      "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?auto=format&fit=crop&w=1000&q=85"
+    ],
+    badge: "⚡ خصم فلاش 42%"
   }
 ];
 
@@ -327,6 +421,7 @@ const MEASUREMENT_DEFINITIONS = [
 ];
 
 if (typeof window !== "undefined") {
+  window.INITIAL_CATEGORIES = INITIAL_CATEGORIES;
   window.INITIAL_SETTINGS = INITIAL_SETTINGS;
   window.INITIAL_DRESSES = INITIAL_DRESSES;
   window.MEASUREMENT_DEFINITIONS = MEASUREMENT_DEFINITIONS;

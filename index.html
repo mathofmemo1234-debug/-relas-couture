@@ -63,11 +63,11 @@
 <body class="bg-[#FAF8F5] text-[#141414] antialiased flex flex-col min-h-screen">
 
   <!-- 1. شريط الإعلانات العلوي الفاخر (Announcement Bar) -->
-  <div class="bg-black text-amber-200 text-xs py-2.5 px-4 text-center tracking-wider border-b border-amber-900/40 relative z-30">
+  <div id="announcementBar" class="bg-black text-amber-200 text-xs py-2.5 px-4 text-center tracking-wider border-b border-amber-900/40 relative z-30 transition-colors">
     <div class="container mx-auto flex items-center justify-between">
       <div class="hidden md:flex items-center gap-4 text-gray-400">
-        <span>📍 الرياض، المملكة العربية السعودية</span>
-        <span>🚚 شحن سريع لكافة المدن</span>
+        <span class="store-city-display">📍 الرياض، المملكة العربية السعودية</span>
+        <span>🚚 توصيل سريع لجميع مناطق المملكة والخليج</span>
       </div>
       <p id="announcementBannerText" class="mx-auto font-medium">
         ✨ استمتعي بتجربة التفصيل الحصري واستوديو القياسات الذكي مع ريلاس | توصيل لجميع مدن المملكة
@@ -80,23 +80,23 @@
 
   <!-- 2. الترويسة الرئيسية (Luxury Header & Navigation) -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E7DFD5] transition-all duration-300">
-    <div class="container mx-auto px-4 lg:px-8 py-3.5 flex items-center justify-between">
+    <div class="container mx-auto px-4 lg:px-8 py-3 flex items-center justify-between">
       
-      <!-- زر القائمة للجوال -->
-      <button id="mobileMenuToggle" class="lg:hidden p-2 text-neutral-800 focus:outline-none">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+      <div class="flex items-center gap-3">
+        <!-- زر القائمة للجوال -->
+        <button id="mobileMenuToggle" class="lg:hidden p-2 text-neutral-800 focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
 
-      <!-- شعار ريلاس للأزياء الفاخر (Brand Logo & Monogram) -->
-      <div class="text-center">
+        <!-- شعار ريلاس للأزياء الفاخر (Brand Logo & Monogram) -->
         <a href="index.html" class="inline-block group">
-          <div class="flex flex-col items-center">
+          <div class="flex flex-col items-start">
             <span class="font-royal text-2xl md:text-3xl font-bold tracking-[0.2em] text-neutral-900 group-hover:text-amber-700 transition uppercase">
               RELAS
             </span>
-            <span class="font-traditional text-sm md:text-base font-bold text-amber-800 -mt-1 tracking-wider">
+            <span class="font-traditional text-xs md:text-sm font-bold text-amber-800 -mt-1 tracking-wider">
               ريلاس للأزياء الراقية
             </span>
           </div>
@@ -104,22 +104,37 @@
       </div>
 
       <!-- القائمة الرئيسية للحواسيب (Desktop Navigation) -->
-      <nav class="hidden lg:flex items-center gap-8 text-sm font-semibold text-neutral-800">
+      <nav class="hidden lg:flex items-center gap-6 text-xs md:text-sm font-semibold text-neutral-800">
         <a href="index.html" class="text-amber-700 hover:text-amber-800 border-b-2 border-amber-600 pb-1">الرئيسية</a>
-        <a href="#collections" class="hover:text-amber-700 transition pb-1">فساتين الزفاف</a>
-        <a href="#collections" class="hover:text-amber-700 transition pb-1">فساتين السهرة</a>
-        <a href="#collections" class="hover:text-amber-700 transition pb-1">الهوت كوتور</a>
-        <a href="measurements.html" class="text-amber-900 bg-amber-100/70 hover:bg-amber-200 px-3.5 py-1.5 rounded-full transition flex items-center gap-1.5 font-bold shadow-sm">
-          <span>استوديو القياسات بالطلب</span> 📐✨
+        <a href="#collections" class="hover:text-amber-700 transition pb-1">التشكيلات والكاتالوج</a>
+        <a href="#flashDealsSection" class="hover:text-amber-700 transition pb-1 flex items-center gap-1 text-red-600 font-bold">
+          <span>عروض فلاش</span> ⚡
         </a>
-        <a href="#atelier" class="hover:text-amber-700 transition pb-1">عن ريلاس</a>
+        <a href="measurements.html" class="text-amber-900 bg-amber-100/70 hover:bg-amber-200 px-3 py-1 rounded-full transition flex items-center gap-1 font-bold shadow-sm">
+          <span>استوديو القياسات</span> 📐✨
+        </a>
+        <button onclick="openSketchModal()" class="text-neutral-800 hover:text-amber-800 transition flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-3 py-1 rounded-full border border-amber-200 text-xs font-bold">
+          <span>رسمة أو تفصيلة خاصة</span> 🎨
+        </button>
       </nav>
 
-      <!-- إجراءات سريعة (WhatsApp & Admin Shortcut) -->
-      <div class="flex items-center gap-3">
-        <a href="measurements.html" class="hidden sm:inline-flex btn-luxury-primary text-xs py-2 px-4">
-          <span>أخذ مقاسكِ</span> 📏
-        </a>
+      <!-- إجراءات سريعة (Cart, Auth, WhatsApp) -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        
+        <!-- قسم حساب الزبونة / تسجيل الدخول بالبريد -->
+        <div id="userAccountSection">
+          <!-- يتم ملؤه ديناميكياً عبر app.js -->
+        </div>
+
+        <!-- زر سلة المشتريات الفاخرة -->
+        <button id="headerCartBtn" onclick="openCartDrawer()" class="relative p-2 text-neutral-800 hover:text-amber-700 transition rounded-full hover:bg-gray-100" title="سلة المشتريات">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <span id="headerCartCount" class="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
+        </button>
+
+        <!-- زر الواتساب المباشر -->
         <a id="headerWaBtn" href="https://wa.me/966551234567" target="_blank" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full transition" title="مراسلة واتساب">
           <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
@@ -130,9 +145,15 @@
 
     <!-- درج القائمة للجوال (Mobile Drawer) -->
     <div id="mobileMenuDrawer" class="hidden lg:hidden bg-white border-b border-gray-200 px-6 py-5 space-y-4">
+      <div id="mobileUserAccountSection" class="pb-3 border-b border-gray-100">
+        <!-- حساب المستخدم في الجوال -->
+      </div>
       <a href="index.html" class="block font-bold text-amber-700">الرئيسية</a>
-      <a href="#collections" class="block text-gray-800">تشكيلة فساتين الزفاف</a>
-      <a href="#collections" class="block text-gray-800">فساتين السهرة والملكة</a>
+      <a href="#collections" class="block text-gray-800">التشكيلات والكاتالوج</a>
+      <a href="#flashDealsSection" class="block text-red-600 font-bold">⚡ عروض فلاش الحصرية</a>
+      <button onclick="openSketchModal(); document.getElementById('mobileMenuDrawer').classList.add('hidden');" class="w-full text-right font-bold text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200 block">
+        🎨 إضافة تفصيلة أو رسمة خاصة
+      </button>
       <a href="measurements.html" class="block font-bold text-amber-900 bg-amber-50 p-3 rounded-lg border border-amber-200">
         📐 استوديو أخذ القياسات بالطلب
       </a>
@@ -145,7 +166,7 @@
   <section class="relative bg-neutral-950 text-white overflow-hidden py-24 md:py-36 min-h-[580px] flex items-center">
     <!-- خلفية الصورة الفاخرة مع تدرج لوني -->
     <div class="absolute inset-0 z-0 opacity-40">
-      <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=85" alt="Relas Bridal Couture" class="w-full h-full object-cover object-center scale-105 transform animate-pulse duration-1000" style="animation-duration: 8s;">
+      <img id="heroBackgroundImage" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=85" alt="Relas Bridal Couture" class="w-full h-full object-cover object-center scale-105 transform transition-all duration-700">
     </div>
     <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10"></div>
 
@@ -156,20 +177,23 @@
           <span class="text-xs font-semibold tracking-widest text-amber-300 uppercase">مجموعة الهوت كوتور 2026</span>
         </div>
 
-        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
+        <h1 id="heroMainTitle" class="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
           لكونكِ أنثى راقية...<br>
           <span class="gold-gradient-text">تشرفنا في تصميم قطعتكِ الخاصة</span>
         </h1>
 
-        <p class="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed font-light">
-          في دار <strong class="text-amber-200 font-bold">ريلاس للأزياء</strong>، نجمع بين فخامة التصاميم العالمية لفساتين السهرة والزفاف وأدق تفاصيل التفصيل الحصري حسب مقاساتكِ الخاصة مع استوديو القياسات الذكي.
+        <p id="heroMainSubtitle" class="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed font-light">
+          في دار <strong class="text-amber-200 font-bold">ريلاس للأزياء</strong>، نجمع بين فخامة التصاميم العالمية لفساتين السهرة والزفاف والعبايات وأدق تفاصيل التفصيل الحصري حسب مقاساتكِ الخاصة مع استوديو القياسات الذكي.
         </p>
 
         <div class="pt-4 flex flex-wrap items-center gap-4">
           <a href="measurements.html" class="btn-luxury-gold py-3.5 px-8 text-sm md:text-base font-bold shadow-xl">
             <span>ابدئي أخذ قياساتكِ التفاعلية 📏</span>
           </a>
-          <a href="#collections" class="btn-luxury-outline text-white border-white/60 hover:bg-white hover:text-black py-3.5 px-8 text-sm md:text-base">
+          <button onclick="openSketchModal()" class="btn-luxury-outline text-white border-amber-400 hover:bg-amber-500 hover:text-black py-3.5 px-6 text-sm md:text-base font-bold shadow-lg flex items-center gap-2">
+            <span>طلب تفصيل أو رسمة خاصة</span> 🎨
+          </button>
+          <a href="#collections" class="btn-luxury-outline text-white border-white/60 hover:bg-white hover:text-black py-3.5 px-6 text-sm md:text-base">
             استكشفي الكاتالوج ✨
           </a>
         </div>
@@ -219,11 +243,11 @@
 
         <div class="flex items-center gap-4 justify-center md:justify-start">
           <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-xl flex-shrink-0">
-            💬
+            🎨
           </div>
           <div>
-            <h4 class="font-bold text-sm text-neutral-900">استشارة مجانية فورية</h4>
-            <p class="text-xs text-gray-500">مراسلة مباشرة مع مصممة الأزياء عبر الواتساب</p>
+            <h4 class="font-bold text-sm text-neutral-900">تفصيل ورسم خاص</h4>
+            <p class="text-xs text-gray-500">ارسمي موديلكِ أو ارفعي باترونكِ الخاص</p>
           </div>
         </div>
 
@@ -240,36 +264,79 @@
     </div>
   </section>
 
+  <!-- 4.5 قسم عروض الفلاش الحصرية التفاعلية (Flash Deals & Limited-Time Offers) -->
+  <section id="flashDealsSection" class="py-8 px-4 lg:px-8 container mx-auto">
+    <div class="flash-deals-banner rounded-2xl p-6 md:p-8 text-white flex flex-col lg:flex-row items-center justify-between gap-6 shadow-2xl">
+      <div class="space-y-3 text-center lg:text-right max-w-xl">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full flash-pulse-badge text-xs font-black uppercase tracking-wider text-white">
+          <span>⚡</span>
+          <span>عروض فلاش الحصرية لفترة محدودة</span>
+        </div>
+        <h3 class="text-xl sm:text-3xl font-black text-amber-200">
+          تخفيضات البرق الملكية على فساتين السهرة والعبايات
+        </h3>
+        <p id="flashDealsPromoText" class="text-xs sm:text-sm text-gray-300 leading-relaxed font-light">
+          استمتعي بخصومات استثنائية عند الشراء الآن! ينتهي العرض المؤقت فور اكتمال سقف الطلبات لهذا الأسبوع.
+        </p>
+      </div>
+
+      <!-- عداد تنازلي فلاش ممتع للعين -->
+      <div class="flex flex-col items-center gap-3 bg-black/40 p-4 rounded-xl border border-amber-500/30 backdrop-blur-sm">
+        <span class="text-xs text-amber-300 font-bold tracking-widest uppercase">ينتهي عرض الفلاش خلال:</span>
+        <div class="flex items-center gap-2" id="flashCountdownBox">
+          <div class="bg-black/90 border border-amber-500/50 px-3 py-2 rounded-lg text-center min-w-[54px] shadow">
+            <span id="flashHours" class="block font-mono text-2xl sm:text-3xl font-black text-amber-400">08</span>
+            <span class="text-[10px] text-gray-400">ساعة</span>
+          </div>
+          <span class="text-xl font-bold text-amber-500 animate-pulse">:</span>
+          <div class="bg-black/90 border border-amber-500/50 px-3 py-2 rounded-lg text-center min-w-[54px] shadow">
+            <span id="flashMinutes" class="block font-mono text-2xl sm:text-3xl font-black text-amber-400">42</span>
+            <span class="text-[10px] text-gray-400">دقيقة</span>
+          </div>
+          <span class="text-xl font-bold text-amber-500 animate-pulse">:</span>
+          <div class="bg-black/90 border border-amber-500/50 px-3 py-2 rounded-lg text-center min-w-[54px] shadow">
+            <span id="flashSeconds" class="block font-mono text-2xl sm:text-3xl font-black text-amber-400">19</span>
+            <span class="text-[10px] text-gray-400">ثانية</span>
+          </div>
+        </div>
+        <button onclick="filterByFlashDeals()" class="btn-luxury-gold text-xs py-2 px-6 font-bold shadow-lg mt-1 flex items-center gap-1.5">
+          <span>استعراض عروض الفلاش</span> ⚡
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- 5. قسم التشكيلات والفساتين (Rosa Clara Style Catalog) -->
-  <section id="collections" class="py-16 md:py-24">
+  <section id="collections" class="py-12 md:py-20">
     <div class="container mx-auto px-4 lg:px-8">
       
       <!-- ترويسة القسم -->
-      <div class="text-center max-w-xl mx-auto mb-12 space-y-3">
+      <div class="text-center max-w-xl mx-auto mb-10 space-y-3">
         <span class="text-xs font-bold uppercase tracking-[0.25em] text-amber-800">COLLECTIONS 2026</span>
-        <h2 class="text-2xl sm:text-4xl font-black text-neutral-900">تشكيلة فساتين السهرة والزفاف</h2>
+        <h2 class="text-2xl sm:text-4xl font-black text-neutral-900">تشكيلة فساتين السهرة والزفاف والعبايات</h2>
         <p class="text-sm text-gray-600 font-light">
-          اختاري تصميمك المفضل أو اطلبي تفصيله بدقة متناهية وفق مقاسات جسمكِ من خلال استوديو القياسات.
+          اختاري تصميمك المفضل أو اطلبي تفصيله بدقة متناهية وفق مقاسات جسمكِ من خلال استوديو القياسات الذكي.
         </p>
       </div>
 
       <!-- شريط الفلاتر والترتيب (Filter & Sort Controls) -->
-      <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 pb-4 border-b border-gray-200">
-        <!-- أزرار التصنيفات -->
-        <div class="flex flex-wrap items-center gap-2">
-          <button class="category-filter-btn px-5 py-2 rounded text-xs md:text-sm font-bold bg-black text-white transition shadow-sm" data-category="all">
-            جميع التشكيلات
-          </button>
-          <button class="category-filter-btn px-5 py-2 rounded text-xs md:text-sm font-semibold bg-transparent text-gray-700 hover:bg-gray-100 transition" data-category="bridal">
-            فساتين زفاف 👰
-          </button>
-          <button class="category-filter-btn px-5 py-2 rounded text-xs md:text-sm font-semibold bg-transparent text-gray-700 hover:bg-gray-100 transition" data-category="evening">
-            فساتين سهرة ✨
-          </button>
-          <button class="category-filter-btn px-5 py-2 rounded text-xs md:text-sm font-semibold bg-transparent text-gray-700 hover:bg-gray-100 transition" data-category="reception">
-            فساتين خطوبة وملكة 👑
-          </button>
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-200">
+        <!-- أزرار التصنيفات الديناميكية بتأثيرات فلاش تفاعلية -->
+        <div id="categoryFiltersContainer" class="flex flex-wrap items-center gap-2">
+          <!-- يتم توليدها ديناميكياً من getCategories() مع تأثيرات الفلاش -->
         </div>
+
+        <!-- قائمة الترتيب -->
+        <div class="flex items-center gap-2 text-xs">
+          <label for="sortSelect" class="text-gray-500 font-semibold">ترتيب حسب:</label>
+          <select id="sortSelect" class="bg-white border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-amber-600 text-gray-800 font-medium">
+            <option value="default">المقترحات والأكثر طلباً</option>
+            <option value="price-low">السعر: من الأقل للأعلى</option>
+            <option value="price-high">السعر: من الأعلى للأقل</option>
+            <option value="newest">الأحدث وصولاً</option>
+          </select>
+        </div>
+      </div>
 
         <!-- قائمة الترتيب -->
         <div class="flex items-center gap-2 text-xs">
@@ -475,6 +542,249 @@
       <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
     </svg>
   </a>
+
+  <!-- زر السلة العائم السريع -->
+  <button id="floatingCartBtn" onclick="openCartDrawer()" class="floating-cart-btn" title="عرض سلة المشتريات">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+    </svg>
+    <span id="floatingCartCount" class="floating-cart-badge">0</span>
+  </button>
+
+  <!-- درج سلة المشتريات الفاخرة (Cart Drawer) -->
+  <div id="cartDrawerOverlay" class="cart-drawer-overlay" onclick="closeCartDrawer()">
+    <div class="cart-drawer-panel" onclick="event.stopPropagation()">
+      <!-- ترويسة السلة -->
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-neutral-950 text-white">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🛍️</span>
+          <h3 class="font-bold text-base">سلة مشتريات ريلاس</h3>
+          <span id="cartDrawerTotalCountBadge" class="bg-amber-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
+        </div>
+        <button onclick="closeCartDrawer()" class="w-8 h-8 rounded-full bg-neutral-800 hover:bg-neutral-700 text-gray-300 flex items-center justify-center font-bold">
+          ✕
+        </button>
+      </div>
+
+      <!-- صندوق شريط تقدم التخفيض التلقائي الشرطي -->
+      <div id="cartDiscountProgressContainer" class="p-3.5 bg-amber-50/70 border-b border-amber-200/70">
+        <!-- يتم تحديثه ديناميكياً عبر app.js -->
+      </div>
+
+      <!-- قائمة عناصر السلة -->
+      <div id="cartItemsList" class="flex-grow overflow-y-auto p-4 space-y-3">
+        <!-- يتم توليد عناصر السلة ديناميكياً -->
+      </div>
+
+      <!-- ملخص المجموع والتخفيض وأزرار الشراء -->
+      <div class="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
+        <div class="space-y-1.5 text-xs text-gray-700">
+          <div class="flex justify-between">
+            <span>المجموع الفرعي:</span>
+            <span id="cartSubtotalText" class="font-bold text-gray-900">0 ر.س</span>
+          </div>
+          <div id="cartDiscountRow" class="flex justify-between text-emerald-700 font-bold hidden">
+            <span id="cartDiscountLabel">التخفيض التلقائي:</span>
+            <span id="cartDiscountAmountText">-0 ر.س</span>
+          </div>
+          <div class="flex justify-between text-sm font-black text-neutral-950 pt-2 border-t border-gray-200">
+            <span>المجموع الإجمالي:</span>
+            <span id="cartFinalTotalText" class="text-amber-800 text-base">0 ر.س</span>
+          </div>
+        </div>
+
+        <button id="cartCheckoutBtn" onclick="checkoutCartViaWhatsApp()" class="w-full btn-luxury-gold py-3 text-sm font-bold shadow-lg flex items-center justify-center gap-2">
+          <span>إتمام الطلب عبر الواتساب</span> 💬
+        </button>
+
+        <p class="text-[11px] text-gray-500 text-center">
+          ✨ سيتم تجهيز المقاسات وحجز موعد البروفة فور إرسال الطلب.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تسجيل الدخول وحساب الزبونة بالبريد (Auth Modal) -->
+  <div id="authModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 relative">
+      <button onclick="closeAuthModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold">
+        ✕
+      </button>
+
+      <div class="text-center mb-6">
+        <span class="font-royal text-xl font-bold tracking-widest text-neutral-900 uppercase block">RELAS COUTURE</span>
+        <h3 class="text-base font-bold text-amber-800 mt-1">حساب زبونة ريلاس الراقية</h3>
+        <p class="text-xs text-gray-500 mt-1">سجّلي دخولكِ بالبريد الإلكتروني لحفظ سلة مشترياتكِ ومتابعة طلباتكِ.</p>
+      </div>
+
+      <!-- تبويبات التبديل بين الدخول والتسجيل -->
+      <div class="flex border-b border-gray-200 mb-5">
+        <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2 text-xs md:text-sm font-bold border-b-2 border-amber-600 text-amber-900 transition">
+          تسجيل الدخول
+        </button>
+        <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 py-2 text-xs md:text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-700 transition">
+          إنشاء حساب جديد
+        </button>
+      </div>
+
+      <!-- نموذج تسجيل الدخول -->
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">البريد الإلكتروني *</label>
+          <input type="email" id="loginEmail" required class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:border-amber-600 focus:outline-none" placeholder="name@example.com" dir="ltr" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">كلمة المرور *</label>
+          <input type="password" id="loginPassword" required class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:border-amber-600 focus:outline-none" placeholder="••••••••" />
+        </div>
+        <div id="loginErrorBox" class="text-xs text-red-600 font-bold hidden"></div>
+        <button type="submit" class="w-full btn-luxury-primary py-2.5 text-xs font-bold shadow">
+          دخول الحساب ✨
+        </button>
+      </form>
+
+      <!-- نموذج إنشاء حساب جديد -->
+      <form id="registerForm" class="space-y-3.5 hidden">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">الاسم الكامل *</label>
+          <input type="text" id="registerName" required class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="سارة العتيبي" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">البريد الإلكتروني *</label>
+          <input type="email" id="registerEmail" required class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="name@example.com" dir="ltr" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">رقم الجوال / الواتساب</label>
+          <input type="tel" id="registerPhone" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="0551234567" dir="ltr" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">كلمة المرور *</label>
+          <input type="password" id="registerPassword" required minlength="6" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="6 خانات على الأقل" />
+        </div>
+        <div id="registerErrorBox" class="text-xs text-red-600 font-bold hidden"></div>
+        <button type="submit" class="w-full btn-luxury-gold py-2.5 text-xs font-bold shadow">
+          إنشاء حساب وتأكيد التسجيل 🌸
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة تفصيلة أو رسمة خاصة (Custom Sketch & Detail Modal) -->
+  <div id="sketchModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-6 md:p-8 relative">
+      <button onclick="closeSketchModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold">
+        ✕
+      </button>
+
+      <div class="mb-4 border-b pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🎨</span>
+          <h3 class="text-lg font-black text-neutral-900">إضافة تفصيلة أو رسمة خاصة لتصميمكِ</h3>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">
+          أبدعي بتصميمكِ الخاص: يمكنكِ الرسم مباشرة على اللوحة التفاعلية أو رفع صورة رسمة/باترون مع كتابة تفاصيل الأقمشة والتعديل.
+        </p>
+      </div>
+
+      <!-- تبديل طريقة التقديم (رسم باليد أو رفع صورة) -->
+      <div class="flex gap-2 mb-4 bg-gray-100 p-1 rounded-lg">
+        <button type="button" id="sketchModeDrawBtn" onclick="switchSketchMode('draw')" class="flex-1 py-1.5 rounded-md text-xs font-bold bg-white text-gray-900 shadow-sm transition">
+          🖌️ لوحة رسم تفاعلية
+        </button>
+        <button type="button" id="sketchModeUploadBtn" onclick="switchSketchMode('upload')" class="flex-1 py-1.5 rounded-md text-xs font-bold text-gray-600 hover:text-gray-900 transition">
+          📸 رفع صورة أو باترون
+        </button>
+      </div>
+
+      <!-- 1. لوحة الرسم التفاعلية (HTML5 Canvas) -->
+      <div id="sketchDrawContainer" class="space-y-2">
+        <div class="sketch-toolbar">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[11px] text-gray-600 font-bold">اللون:</span>
+            <button type="button" class="sketch-color-btn active" style="background:#141414" onclick="setCanvasColor('#141414', this)"></button>
+            <button type="button" class="sketch-color-btn" style="background:#c5a880" onclick="setCanvasColor('#c5a880', this)"></button>
+            <button type="button" class="sketch-color-btn" style="background:#dc2626" onclick="setCanvasColor('#dc2626', this)"></button>
+            <button type="button" class="sketch-color-btn" style="background:#2563eb" onclick="setCanvasColor('#2563eb', this)"></button>
+            <button type="button" class="sketch-color-btn" style="background:#16a34a" onclick="setCanvasColor('#16a34a', this)"></button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-[11px] text-gray-600 font-bold">حجم الفرشاة:</label>
+            <input type="range" id="canvasBrushSize" min="1" max="15" value="3" class="w-20 cursor-pointer" oninput="setCanvasBrushSize(this.value)" />
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="setCanvasEraser(this)" id="canvasEraserBtn" class="px-2.5 py-1 text-xs border rounded bg-white hover:bg-gray-50 text-gray-700">
+              🧹 ممحاة
+            </button>
+            <button type="button" onclick="clearCanvasSketch()" class="px-2.5 py-1 text-xs border border-red-200 text-red-600 rounded bg-red-50 hover:bg-red-100 font-bold">
+              مسح اللوحة
+            </button>
+          </div>
+        </div>
+
+        <div class="sketch-canvas-wrapper">
+          <canvas id="sketchPadCanvas" class="sketch-canvas" width="600" height="280"></canvas>
+        </div>
+        <p class="text-[10px] text-gray-400 text-center">💡 يمكنكِ الرسم بإصبعكِ على شاشة الهاتف أو بالفأرة على الكمبيوتر.</p>
+      </div>
+
+      <!-- 2. منطقة رفع الصور من الجهاز -->
+      <div id="sketchUploadContainer" class="hidden space-y-2">
+        <div class="image-upload-dropzone" onclick="document.getElementById('sketchFileInput').click()">
+          <input type="file" id="sketchFileInput" accept="image/*" class="hidden" onchange="handleSketchFileUpload(event)" />
+          <div class="flex flex-col items-center justify-center gap-1 text-gray-600">
+            <span class="text-3xl mb-1">🖼️</span>
+            <p class="text-xs font-bold text-gray-800">انقري لرفع صورة السكتش أو الفستان من الاستوديو</p>
+            <p class="text-[11px] text-gray-500">يدعم صور JPG, PNG, WEBP</p>
+          </div>
+        </div>
+        <div id="sketchUploadPreview" class="hidden relative rounded-lg overflow-hidden border max-h-48 flex items-center justify-center bg-gray-50">
+          <img id="sketchUploadImg" src="" alt="معاينة الرسمة المرفوعة" class="max-h-48 object-contain" />
+          <button type="button" onclick="removeUploadedSketch()" class="absolute top-2 left-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs shadow">✕</button>
+        </div>
+      </div>
+
+      <!-- بيانات وتفاصيل الطلب الإضافية -->
+      <form id="sketchOrderForm" class="space-y-3 pt-3 mt-3 border-t">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">اسمكِ الكريم *</label>
+            <input type="text" id="sketchCustomerName" required class="w-full text-xs border rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="الاسم" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">رقم الواتساب للتواصل *</label>
+            <input type="tel" id="sketchCustomerPhone" required class="w-full text-xs border rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="0551234567" dir="ltr" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">نوع القماش المفضل</label>
+            <input type="text" id="sketchFabric" class="w-full text-xs border rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="دانتيل فرنسي، ميكادو، حرير..." />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">اللون المطلوب</label>
+            <input type="text" id="sketchColor" class="w-full text-xs border rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="أوف وايت، ذهبي، أسود ملكي..." />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">شرح التفصيلة أو التعديلات المطلوبة بدقة *</label>
+          <textarea id="sketchNotes" rows="2" required class="w-full text-xs border rounded-lg px-3 py-2 focus:border-amber-600 focus:outline-none" placeholder="اكتبي تفاصيل قصّة الكم، الذيل، إضافة كورسيه داخلي، تطريز محدد..."></textarea>
+        </div>
+
+        <div class="pt-2 flex flex-wrap gap-2 justify-end">
+          <button type="button" onclick="closeSketchModal()" class="btn-luxury-outline text-xs py-2 px-4">
+            إلغاء
+          </button>
+          <button type="button" onclick="addSketchToCart()" class="btn-luxury-outline text-xs py-2 px-4 text-amber-900 border-amber-600 hover:bg-amber-50">
+            إضافة إلى السلة 🛍️
+          </button>
+          <button type="submit" class="btn-luxury-gold text-xs py-2 px-6 font-bold shadow">
+            إرسال للمصممة بالواتساب وحفظ الطلب 💬✨
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- نافذة المعاينة السريعة للفستان (Quick View Modal) -->
   <div id="quickViewModal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
