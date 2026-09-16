@@ -383,7 +383,7 @@ class RelasDataService {
     if (!this.isFirebaseReady || !this.db) {
       return {
         success: false,
-        message: "Firebase غير مهيأ. يرجى إدخال مفاتيح المشروع وحفظها أولاً."
+        message: "Firebase غير مهيأ. يرجى إدخال مفاتيح المشروع وحفظها، أو الاعتماد على التخزين المحلي الآمن."
       };
     }
 
@@ -396,8 +396,8 @@ class RelasDataService {
         status: "ok"
       });
 
-      // مؤقت أمان 3 ثواني حتى لا يعلق الفحص
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Firebase connection timeout")), 3500));
+      // مهلة كافية للشبكات البطيئة (8 ثواني)
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Firebase connection timeout")), 8000));
       await Promise.race([writePromise, timeoutPromise]);
 
       const snap = await Promise.race([pingRef.get(), timeoutPromise]);
@@ -410,25 +410,32 @@ class RelasDataService {
         return {
           success: true,
           latency,
-          message: `الاتصال بقاعدة بيانات Firebase Firestore سليم ومفعّل بنجاح! (زمن الاستجابة: ${latency}ms)`
+          message: `الاتصال بقاعدة بيانات Firebase Firestore سليم ومفعّل بنجاح! 🟢 (زمن الاستجابة: ${latency}ms)`
         };
       } else {
         throw new Error("لم يتم العثور على وثيقة الاستجابة");
       }
     } catch (err) {
       this.lastError = err.message;
-      this.notifyStatusListeners();
-
+      
       let reason = err.message;
-      if (err.code === 'permission-denied') {
-        reason = "تم رفض الإذن (Permission Denied). يرجى التأكد من تفعيل قواعد Firestore (Security Rules) بالسماح بالقراءة والكتابة.";
-      } else if (err.code === 'unavailable' || err.message.includes('timeout')) {
-        reason = "تعذر الوصول إلى الخادم السحابي أو انتهت مهلة الانتظار.";
+      let isPermission = err.code === 'permission-denied';
+
+      if (isPermission) {
+        this.connectionStatus = 'error';
+        reason = "تم رفض الصلاحيات (Permission Denied). يرجى فتح تبويب Rules في Firestore وتفعيل: allow read, write: if true; ثم الضغط على Publish.";
+      } else if (err.code === 'unavailable' || err.message.includes('timeout') || err.message.includes('not-found')) {
+        this.connectionStatus = 'offline';
+        reason = "تعذر الاتصال بقاعدة بيانات Cloud Firestore. السبب الشائع: لم يتم الضغط على (Create Database) بعد في لوحة Firebase Console لمشروعكِ، أو بسبب بطء الشبكة. لا تقلقي: كافة بياناتكِ والفساتين والطلبات تعمل وتُحفظ محلياً بأمان وبكفاءة 100%.";
+      } else {
+        this.connectionStatus = 'error';
       }
+
+      this.notifyStatusListeners();
 
       return {
         success: false,
-        code: err.code || 'timeout',
+        code: err.code || 'offline',
         message: `فحص Firebase: ${reason}`
       };
     }

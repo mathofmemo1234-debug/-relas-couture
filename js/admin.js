@@ -910,13 +910,13 @@ function checkFirebaseStatus() {
       `;
     } else if (status === 'error') {
       statusEl.innerHTML = `
-        <span class="w-3 h-3 bg-red-500 rounded-full"></span>
-        <span class="text-xs font-bold text-red-400">تنبيه في اتصال Firebase 🔴</span>
+        <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
+        <span class="text-xs font-bold text-amber-400">تنبيه في أذونات السحابة (يعمل محلياً) ⚠️</span>
       `;
     } else {
       statusEl.innerHTML = `
-        <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
-        <span class="text-xs font-bold text-amber-400">نظام التخزين المحلي الآمن 🟡</span>
+        <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+        <span class="text-xs font-bold text-emerald-400">نظام التخزين المحلي الآمن 🟢</span>
       `;
     }
   }
@@ -926,11 +926,11 @@ function checkFirebaseStatus() {
       badgeEl.className = "flex items-center gap-2 bg-emerald-100 text-emerald-900 px-3.5 py-1.5 rounded-full border border-emerald-300 text-xs font-bold";
       badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span><span>متصل ومفعّل سحابياً 🟢</span>`;
     } else if (status === 'error') {
-      badgeEl.className = "flex items-center gap-2 bg-red-100 text-red-900 px-3.5 py-1.5 rounded-full border border-red-300 text-xs font-bold";
-      badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-red-600"></span><span>خطأ في الصلاحيات أو المفاتيح 🔴</span>`;
-    } else {
       badgeEl.className = "flex items-center gap-2 bg-amber-100 text-amber-900 px-3.5 py-1.5 rounded-full border border-amber-300 text-xs font-bold";
-      badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span><span>تخزين محلي (LocalStorage) 🟡</span>`;
+      badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span><span>تحتاج لتفعيل قواعد Firestore ⚠️</span>`;
+    } else {
+      badgeEl.className = "flex items-center gap-2 bg-emerald-100 text-emerald-900 px-3.5 py-1.5 rounded-full border border-emerald-300 text-xs font-bold";
+      badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span><span>تخزين محلي آمن ومفعّل 🟢</span>`;
     }
   }
 }
