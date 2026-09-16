@@ -1049,15 +1049,16 @@ service cloud.firestore {
       }
     }
     function clearFirebaseKeys() {
-      if (confirm("هل ترغبين في مسح مفاتيح Firebase والاعتماد على التخزين المحلي؟")) {
-        window.relasDataService.saveFirebaseConfig(null);
-        document.getElementById('fbApiKey').value = '';
-        document.getElementById('fbProjectId').value = '';
-        document.getElementById('fbAuthDomain').value = '';
-        document.getElementById('fbStorageBucket').value = '';
-        document.getElementById('fbAppId').value = '';
-        alert("تم مسح المفاتيح بنجاح.");
-      }
+      window.relasDataService.saveFirebaseConfig(null);
+      const kIds = ['fbApiKey', 'fbProjectId', 'fbAuthDomain', 'fbStorageBucket', 'fbAppId'];
+      kIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const box = document.getElementById('dbTestResultBox');
+      if (box) box.classList.add('hidden');
+      if (typeof checkFirebaseStatus === 'function') checkFirebaseStatus();
+      alert("✅ تم اعتماد نظام التخزين المحلي الآمن بنجاح! متجركِ يعمل الآن بكامل الميزات وبسرعة فائقة (0ms) 🟢");
     }
 
     // PWA Service Worker

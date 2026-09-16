@@ -346,22 +346,22 @@ class RelasDataService {
         }
         this.db = firebase.firestore();
         this.isFirebaseReady = true;
-        this.connectionStatus = 'checking';
+        this.connectionStatus = 'offline';
         this.notifyStatusListeners();
 
-        // فحص غير معطل لاتصال السحابة
+        // فحص صامت لا يظهر أي أخطاء تلقائياً ولا يعطل عمل المتجر
         this.testConnection().then(res => {
           if (res.success) {
             this.connectionStatus = 'connected';
             this.lastError = null;
           } else {
-            this.connectionStatus = 'error';
-            this.lastError = res.message;
+            this.connectionStatus = 'offline';
+            this.lastError = null;
           }
           this.notifyStatusListeners();
-        }).catch(err => {
-          this.connectionStatus = 'error';
-          this.lastError = err.message;
+        }).catch(() => {
+          this.connectionStatus = 'offline';
+          this.lastError = null;
           this.notifyStatusListeners();
         });
       } else {

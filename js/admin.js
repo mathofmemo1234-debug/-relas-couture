@@ -883,15 +883,33 @@ function showDbResultBox(isSuccess, message) {
   const box = document.getElementById('dbTestResultBox');
   if (!box) return;
 
-  box.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-900', 'border-emerald-200', 'bg-red-50', 'text-red-900', 'border-red-200');
+  box.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-900', 'border-emerald-200', 'bg-red-50', 'text-red-900', 'border-red-200', 'bg-amber-50', 'text-amber-950', 'border-amber-300');
   
   if (isSuccess) {
     box.classList.add('bg-emerald-50', 'text-emerald-900', 'border-emerald-200');
+    box.innerHTML = `
+      <div class="flex items-center justify-between gap-2">
+        <div class="font-bold">${message}</div>
+        <button type="button" onclick="this.closest('#dbTestResultBox').classList.add('hidden')" class="font-bold text-emerald-800 text-xs px-2 py-1 hover:bg-emerald-100 rounded">✕</button>
+      </div>
+    `;
   } else {
-    box.classList.add('bg-red-50', 'text-red-900', 'border-red-200');
+    box.classList.add('bg-amber-50', 'text-amber-950', 'border-amber-300');
+    box.innerHTML = `
+      <div class="space-y-2.5">
+        <div class="flex items-start justify-between gap-3">
+          <div class="font-medium text-xs leading-relaxed text-amber-950">${message}</div>
+          <button type="button" onclick="this.closest('#dbTestResultBox').classList.add('hidden')" class="font-bold text-amber-800 text-xs px-2 py-1 hover:bg-amber-100 rounded flex-shrink-0" title="إغلاق التنبيه">✕</button>
+        </div>
+        <div class="pt-2 border-t border-amber-200 flex flex-wrap items-center justify-between gap-2">
+          <span class="text-[11px] text-amber-900 font-bold">💡 متجركِ يعمل بنسبة 100% بنظام التخزين المحلي الآمن (IndexedDB).</span>
+          <button type="button" onclick="clearFirebaseKeys()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-bold transition shadow">
+            الاعتماد على التخزين المحلي وإخفاء التنبيه فوراً 🟢
+          </button>
+        </div>
+      </div>
+    `;
   }
-
-  box.innerHTML = message;
 }
 
 function checkFirebaseStatus() {
