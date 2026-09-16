@@ -1,0 +1,745 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>دليل لوحة تحكم ريلاس كوتور | Relas Couture Manual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-dark: #b45309;
+      --gold-primary: #d97706;
+      --gold-light: #fef3c7;
+      --gold-border: #f59e0b;
+      --dark-bg: #09090b;
+      --card-dark: #18181b;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --emerald-dark: #065f46;
+      --emerald-light: #d1fae5;
+      --purple-dark: #581c87;
+      --purple-light: #f3e8ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 8mm 10mm;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      color: var(--text-main);
+      background-color: #ffffff;
+      line-height: 1.5;
+      font-size: 12px;
+      direction: rtl;
+    }
+
+    .page {
+      width: 100%;
+      height: 280mm;
+      max-height: 280mm;
+      page-break-after: always;
+      break-after: page;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      padding: 5mm 2mm;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    /* غلاف الدليل الفاخر */
+    .cover-page {
+      background: linear-gradient(135deg, #09090b 0%, #1c1917 50%, #292524 100%);
+      color: #ffffff;
+      padding: 24px 22px;
+      border-radius: 14px;
+      border: 2px solid #d97706;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .brand-tag {
+      display: inline-block;
+      background: rgba(217, 119, 6, 0.25);
+      border: 1px solid #d97706;
+      color: #fef3c7;
+      padding: 3px 12px;
+      border-radius: 30px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .cover-title {
+      font-family: 'Amiri', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fef08a;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    .cover-subtitle {
+      font-size: 12px;
+      color: #e2e8f0;
+      font-weight: 400;
+      margin-bottom: 14px;
+    }
+
+    .cover-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge-pill {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* العناوين والأقسام */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+
+    .section-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .section-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: -4px;
+      margin-bottom: 10px;
+    }
+
+    /* البطاقات الملونة */
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .card-gold {
+      border-right: 4px solid #d97706;
+      background: linear-gradient(to left, #ffffff, #fffbeb);
+    }
+
+    .card-emerald {
+      border-right: 4px solid #059669;
+      background: linear-gradient(to left, #ffffff, #f0fdf4);
+    }
+
+    .card-purple {
+      border-right: 4px solid #7c3aed;
+      background: linear-gradient(to left, #ffffff, #faf5ff);
+    }
+
+    .card-blue {
+      border-right: 4px solid #0284c7;
+      background: linear-gradient(to left, #ffffff, #f0f9ff);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* شبكة الأعمدة */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* خطوات مرقمة */
+    .step-list {
+      list-style: none;
+      counter-reset: step-counter;
+      padding: 0;
+    }
+
+    .step-item {
+      position: relative;
+      padding-right: 28px;
+      margin-bottom: 7px;
+      font-size: 11.5px;
+    }
+
+    .step-item::before {
+      content: counter(step-counter);
+      counter-increment: step-counter;
+      position: absolute;
+      right: 0;
+      top: 1px;
+      width: 20px;
+      height: 20px;
+      background: #d97706;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* الجداول الفاخرة */
+    table.luxury-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0;
+      font-size: 11px;
+      background: white;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    table.luxury-table th {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 7px 10px;
+      font-weight: 700;
+      text-align: right;
+      border: 1px solid #334155;
+    }
+
+    table.luxury-table td {
+      padding: 7px 10px;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+    }
+
+    table.luxury-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .code-pill {
+      background: #1e293b;
+      color: #fef08a;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: bold;
+      display: inline-block;
+      direction: ltr;
+    }
+
+    .preset-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 7px;
+      text-align: center;
+      background: white;
+    }
+
+    .preset-color-strip {
+      height: 14px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .preset-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .progress-bar-container {
+      background: #e2e8f0;
+      border-radius: 8px;
+      height: 12px;
+      overflow: hidden;
+      margin: 6px 0;
+      border: 1px solid #cbd5e1;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #d97706, #fbbf24);
+      width: 75%;
+      border-radius: 8px;
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 6px;
+      margin-top: 8px;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== الصفحة 1: الغلاف والفهرس وبيانات الدخول ==================== -->
+  <div class="page">
+    <div>
+      <div class="cover-page">
+        <div class="brand-tag">RELAS HAUTE COUTURE — OFFICIAL MANUAL 2026</div>
+        <h1 class="cover-title">الدليل التشغيلي للوحة تحكم «ريلاس كوتور»</h1>
+        <p class="cover-subtitle">
+          الدليل المرجعي الملون لإدارة الكاتالوج، التصنيفات، الهوية البصرية، عروض الفلاش، سلة الشراء الذكية، واستوديو رسومات العميلات بأعلى درجات الفخامة والاحترافية.
+        </p>
+        <div class="cover-badges">
+          <div class="badge-pill">🟢 تخزين محلي فوري وآمن</div>
+          <div class="badge-pill">📱 تواصل واتساب فوري</div>
+          <div class="badge-pill">📐 استوديو قياسات 13 نقطة</div>
+          <div class="badge-pill">🎨 تخصيص مرئي كامل</div>
+          <div class="badge-pill">⚡ عروض فلاش تفاعلية</div>
+          <div class="badge-pill">🎁 خصم شرطي تلقائي</div>
+        </div>
+      </div>
+
+      <!-- صندوق بيانات الدخول السريع -->
+      <div class="card card-gold">
+        <div class="card-title">
+          <span>🔐</span> بيانات الدخول المعتمدة للوحة التحكم (Quick Access)
+        </div>
+        <div class="grid-3" style="margin-top: 6px;">
+          <div>
+            <strong style="color: #64748b; font-size: 10px; display: block;">رابط الصفحة:</strong>
+            <span style="font-weight: 700; color: #0f172a;">admin.html</span>
+          </div>
+          <div>
+            <strong style="color: #64748b; font-size: 10px; display: block;">رمز الدخول الافتراضي:</strong>
+            <span class="code-pill">memo1974</span>
+          </div>
+          <div>
+            <strong style="color: #64748b; font-size: 10px; display: block;">رمز بديل معتمد:</strong>
+            <span class="code-pill">relas2026</span>
+          </div>
+        </div>
+        <div style="background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 6px 10px; border-radius: 6px; font-size: 11px; margin-top: 8px;">
+          💡 يمكنك تغيير رمز الدخول السري في أي وقت من تبويب <strong>«⚙️ إعدادات المتجر والواتساب»</strong> ثم الضغط على حفظ.
+        </div>
+      </div>
+
+      <!-- بطاقات تبويبات لوحة التحكم السبعة -->
+      <div class="section-header">
+        <div class="section-icon">📑</div>
+        <div>
+          <h2 class="section-title">فهرس تبويبات لوحة التحكم (Dashboard Tabs)</h2>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title"><span>📊</span> 1. النظرة العامة</div>
+          <p style="font-size: 11px; color: #64748b;">إحصائيات الفساتين، طلبات القياس الجديدة، فحص رقم الواتساب المعتمد.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>👗</span> 2. إدارة الفساتين</div>
+          <p style="font-size: 11px; color: #64748b;">إضافة فساتين جديدة، رفع الصور بالسحب والإفلات، تحديد الأسعار والأقمشة.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>🏷️</span> 3. التصنيفات والفلاش</div>
+          <p style="font-size: 11px; color: #64748b;">إضافة أقسام (عبايات، فساتين خروج..)، إيموجي، تفعيل تأثير الفلاش النابض.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>🎨</span> 4. مظهر الموقع والبنرات</div>
+          <p style="font-size: 11px; color: #64748b;">الأنماط الجاهزة، منتقي الألوان، رفع صورة البنر العريض، شريط الإعلانات.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>📐</span> 5. طلبات القياس</div>
+          <p style="font-size: 11px; color: #64748b;">متابعة طلبات المقاسات الـ 13، طباعة كرت المشغل (Job Card)، ومراسلة الزبونة.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>✏️</span> 6. الرسومات والتفاصيل</div>
+          <p style="font-size: 11px; color: #64748b;">معاينة رسومات العميلات، تحميلها كصورة PNG، والتسعير الفوري عبر الواتساب.</p>
+        </div>
+      </div>
+
+      <div class="card card-purple" style="margin-top: 4px;">
+        <div class="card-title"><span>⚙️</span> 7. إعدادات المتجر والتخفيض الشرطي والنسخ الاحتياطي</div>
+        <p style="font-size: 11.5px; color: #475569;">
+          تعديل اسم المتجر ورقم الواتساب الرسمي الدولي، تفعيل التخفيض التلقائي للسلة، تصدير واسترجاع النسخ الاحتياطية (JSON)، والتبديل بين التخزين المحلي والربط السحابي مع Firebase.
+        </p>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>ريلاس كوتور للأزياء الراقية | Relas Haute Couture</span>
+      <span>الصفحة 1 من 4</span>
+    </div>
+  </div>
+
+  <!-- ==================== الصفحة 2: التصنيفات + مظهر الموقع والبنرات ==================== -->
+  <div class="page">
+    <div>
+      <!-- القسم 2: إدارة التصنيفات -->
+      <div class="section-header">
+        <div class="section-icon">🏷️</div>
+        <div>
+          <h2 class="section-title">2. إدارة التصنيفات والأقسام وتأثير الفلاش التفاعلي</h2>
+        </div>
+      </div>
+      <p class="section-desc">تحكم كامل في الأقسام المعروضة في المتجر لشاشات الجوال والكمبيوتر، وتخصيص تأثيرات لفت الانتباه للعميلات.</p>
+
+      <div class="grid-2">
+        <div class="card card-gold">
+          <div class="card-title"><span>➕</span> خطوات إضافة تصنيف جديد</div>
+          <ul class="step-list">
+            <li class="step-item">افتح تبويب <strong>«🏷️ إدارة التصنيفات والأقسام»</strong>.</li>
+            <li class="step-item">اضغط على زر <strong>«➕ إضافة تصنيف جديد»</strong>.</li>
+            <li class="step-item">اكتب الاسم بالعربية (مثلاً: <code>عبايات ملكية</code>).</li>
+            <li class="step-item">اختر الرمز التعبيري المناسب (مثلاً: 🧕 أو ✨).</li>
+            <li class="step-item">اكتب المعرف بالإنجليزية (مثلاً: <code>royal_abayas</code>).</li>
+            <li class="step-item">فعّل خيار <strong>«تأثير الفلاش التفاعلي»</strong> إذا كان القسم مخصصاً لعروض مميزة.</li>
+            <li class="step-item">اضغط <strong>«حفظ التصنيف»</strong> ليظهر فوراً في المتجر وفي قائمة الفساتين.</li>
+          </ul>
+        </div>
+
+        <div class="card card-emerald">
+          <div class="card-title"><span>⚡</span> ما هو تأثير الفلاش التفاعلي؟</div>
+          <p style="font-size: 11.5px; margin-bottom: 8px; color: #334155;">
+            عند تفعيل "عروض فلاش"، يتميز زر القسم في واجهة المتجر بالتالي:
+          </p>
+          <div style="background: #09090b; color: white; padding: 8px 10px; border-radius: 6px; border: 1px solid #d97706; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: bold; color: #fef08a; font-size: 11.5px;">⚡ عروض فلاش محدودة</span>
+              <span style="background: #d97706; color: white; font-size: 9.5px; padding: 2px 6px; border-radius: 4px;">فلاش مميز ✨</span>
+            </div>
+            <div style="font-size: 10.5px; color: #94a3b8; margin-top: 3px;">هالة ضوئية ذهبية نابضة بالأنيميشن تلفت العين فوراً.</div>
+          </div>
+          <p style="font-size: 11px; color: #047857;">
+            كما يتزامن مع قسم <strong>«العد التنازلي التفاعلي»</strong> في الصفحة الرئيسية لحث العميلات على الشراء قبل نفاد الوقت.
+          </p>
+        </div>
+      </div>
+
+      <!-- القسم 3: مظهر وهوية المتجر والبنرات -->
+      <div class="section-header" style="margin-top: 14px;">
+        <div class="section-icon">🎨</div>
+        <div>
+          <h2 class="section-title">3. التحكم في مظهر وهوية الموقع والبنرات</h2>
+        </div>
+      </div>
+      <p class="section-desc">إمكانية تغيير ألوان وهوية الموقع ونصوص البنر الترحيبي بنقرة زر واحدة دون تعديل أي ملف برمجي.</p>
+
+      <div class="card">
+        <div class="card-title"><span>👑</span> الأنماط الملكية الجاهزة بنقرة واحدة (One-Click Presets)</div>
+        <div class="grid-4" style="margin-top: 6px;">
+          <div class="preset-card">
+            <div class="preset-color-strip">
+              <div style="flex: 2; background: #d97706;"></div>
+              <div style="flex: 1; background: #09090b;"></div>
+            </div>
+            <div class="preset-title">الذهب الملكي</div>
+            <div style="font-size: 9.5px; color: #64748b;">Royal Gold (كلاسيكي)</div>
+          </div>
+          <div class="preset-card">
+            <div class="preset-color-strip">
+              <div style="flex: 2; background: #059669;"></div>
+              <div style="flex: 1; background: #022c22;"></div>
+            </div>
+            <div class="preset-title">الزمرد الفاخر</div>
+            <div style="font-size: 9.5px; color: #64748b;">Emerald Haute</div>
+          </div>
+          <div class="preset-card">
+            <div class="preset-color-strip">
+              <div style="flex: 2; background: #be123c;"></div>
+              <div style="flex: 1; background: #4c0519;"></div>
+            </div>
+            <div class="preset-title">المخمل العنابي</div>
+            <div style="font-size: 9.5px; color: #64748b;">Ruby Velvet</div>
+          </div>
+          <div class="preset-card">
+            <div class="preset-color-strip">
+              <div style="flex: 2; background: #38bdf8;"></div>
+              <div style="flex: 1; background: #030712;"></div>
+            </div>
+            <div class="preset-title">سواد منتصف الليل</div>
+            <div style="font-size: 9.5px; color: #64748b;">Midnight Luxury</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card card-blue">
+          <div class="card-title"><span>🖼️</span> تخصيص البنر العريض (Hero Banner)</div>
+          <ul class="step-list">
+            <li class="step-item"><strong>العنوان الرئيسي</strong>: عدّل عبارة الترحيب الكبرى التي تقابل الزائرة.</li>
+            <li class="step-item"><strong>العنوان الفرعي</strong>: تفاصيل القماش وموسم التصميم الجديد.</li>
+            <li class="step-item"><strong>نص الشارة العلوية</strong>: شارة حصرية صغيرة بأعلى البنر.</li>
+            <li class="step-item"><strong>رفع صورة الخلفية</strong>: اسحب أي صورة فخمة من جهازك لمربع الرفع أو ضع رابطها.</li>
+            <li class="step-item"><strong>طبقة التعتيم والتغبيش</strong>: تفعيلها بضغطة زر يضمن وضوح النصوص وقراءتها.</li>
+          </ul>
+        </div>
+
+        <div class="card card-gold">
+          <div class="card-title"><span>📢</span> شريط الإعلانات العلوي (Announcement Bar)</div>
+          <p style="font-size: 11px; color: #334155; margin-bottom: 6px;">
+            شريط رفيع يظهر في أعلى صفحة المتجر بالكامل مخصص للإعلانات العاجلة:
+          </p>
+          <div style="background: #d97706; color: white; padding: 5px 10px; border-radius: 5px; font-size: 10.5px; text-align: center; font-weight: bold; margin-bottom: 6px;">
+            🚚 شحن مجاني وتفصيل ملكي لكافة مناطق المملكة بمناسبة الموسم الجديد ✨
+          </div>
+          <ul style="font-size: 11px; color: #64748b; padding-right: 16px; line-height: 1.6;">
+            <li>يمكنك إخفاء أو إظهار الشريط بضغطة زر.</li>
+            <li>تحديد لون خلفية الشريط ولون النص المفضل.</li>
+            <li>تعديل نص الإعلان بأي عرض موسمي تريده.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>ريلاس كوتور للأزياء الراقية | Relas Haute Couture</span>
+      <span>الصفحة 2 من 4</span>
+    </div>
+  </div>
+
+  <!-- ==================== الصفحة 3: التخفيض الشرطي واستوديو الرسومات ==================== -->
+  <div class="page">
+    <div>
+      <!-- القسم 4: التخفيض الشرطي -->
+      <div class="section-header">
+        <div class="section-icon">🎁</div>
+        <div>
+          <h2 class="section-title">4. نظام التخفيض الشرطي التلقائي وسلة الشراء</h2>
+        </div>
+      </div>
+      <p class="section-desc">محرك ذكي لتحفيز العميلات على رفع قيمة السلة والحصول على خصم تلقائي عند الوصول للمبلغ المستهدف.</p>
+
+      <div class="card card-gold">
+        <div class="card-title"><span>⚙️</span> كيفية الضبط في لوحة التحكم وطريقة عمله مع العميلات</div>
+        <div class="grid-2" style="margin-top: 6px;">
+          <div>
+            <h4 style="font-size: 12px; color: #92400e; margin-bottom: 4px;">1. إعدادات لوحة التحكم (تبويب الإعدادات ⚙️):</h4>
+            <ul style="font-size: 11px; color: #334155; line-height: 1.7; padding-right: 16px;">
+              <li>تفعيل خيار <strong>«تفعيل التخفيض التلقائي للطلبات الكبيرة»</strong>.</li>
+              <li><strong>الحد الأدنى لقيمة المشتريات</strong>: مثلاً <code>3000</code> ر.س.</li>
+              <li><strong>نسبة الخصم المئوية</strong>: مثلاً <code>15</code> %.</li>
+              <li><strong>رسالة التهنئة</strong>: مثلاً: <em>"🎉 مبروك! حصلتِ على خصم 15%"</em>.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 style="font-size: 12px; color: #047857; margin-bottom: 4px;">2. ما تشاهده العميلة في درج السلة:</h4>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 10.5px; font-weight: bold;">
+                <span>شريط التقدم للخصم:</span>
+                <span style="color: #d97706;">متبقي 800 ر.س على الخصم! 🎁</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill"></div>
+              </div>
+              <div style="font-size: 10px; color: #64748b;">
+                عند تجاوز 3,000 ر.س: يكتمل الشريط، ويُخصم 15% تلقائياً، وتُجهّز فاتورة واتساب بخصم رسمي للمشغل.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- القسم 5: استوديو الرسومات والتفاصيل المخصصة -->
+      <div class="section-header" style="margin-top: 14px;">
+        <div class="section-icon">✏️</div>
+        <div>
+          <h2 class="section-title">5. استوديو تفاصيل ورسومات العميلات (Custom Sketches)</h2>
+        </div>
+      </div>
+      <p class="section-desc">خدمة حصرية تتيح للعميلة رسم تفصيلة فستانها باللمس أو رفع صورة إلهام وإرسالها للمشغل مباشرة.</p>
+
+      <div class="grid-2">
+        <div class="card card-purple">
+          <div class="card-title"><span>📱</span> تجربة العميلة في المتجر</div>
+          <p style="font-size: 11px; color: #334155; margin-bottom: 6px;">
+            عند ضغط العميلة على زر <strong>«✏️ ارسمي فستانك أو أضيفي تفصيلة خاصة»</strong>:
+          </p>
+          <ul class="step-list">
+            <li class="step-item">تفتح شاشة رسم تفاعلية ترسم فيها بأصبعها (على الجوال) أو بالفأرة (على الكمبيوتر).</li>
+            <li class="step-item">تختار حجم الفرشاة، الألوان، الممحاة، وزر مسح اللوحة.</li>
+            <li class="step-item">يمكنها بدلاً من الرسم (أو مع الرسم) <strong>رفع صورة فستان</strong> من هاتفها.</li>
+            <li class="step-item">تكتب ملاحظاتها، نوع القماش، رقم جوالها، ثم تضغط <strong>«إرسال للمشغل 📤»</strong>.</li>
+          </ul>
+        </div>
+
+        <div class="card card-emerald">
+          <div class="card-title"><span>👁️</span> كيف يتعامل المدير مع الرسمة في لوحة التحكم؟</div>
+          <p style="font-size: 11px; color: #334155; margin-bottom: 6px;">
+            في تبويب <strong>«✏️ الرسومات والتفاصيل المخصصة»</strong>:
+          </p>
+          <table class="luxury-table">
+            <thead>
+              <tr>
+                <th>الزر</th>
+                <th>الوظيفة الإدارية</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>👁️ معاينة</strong></td>
+                <td>عرض الرسمة بالحجم الكامل وبدقة متناهية لفحص التفاصيل والتطريز.</td>
+              </tr>
+              <tr>
+                <td><strong>💾 تحميل PNG</strong></td>
+                <td>تنزيل الرسمة كصورة على جهازك لتسليمها للخياطين في المشغل.</td>
+              </tr>
+              <tr>
+                <td><strong>💬 واتساب</strong></td>
+                <td>فتح محادثة فورية مع العميلة بنص جاهز ومجهز برقم الطلب لتسعيره.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>ريلاس كوتور للأزياء الراقية | Relas Haute Couture</span>
+      <span>الصفحة 3 من 4</span>
+    </div>
+  </div>
+
+  <!-- ==================== الصفحة 4: الفساتين + طلبات القياسات + قواعد البيانات ==================== -->
+  <div class="page">
+    <div>
+      <!-- القسم 6: الفساتين وطلبات القياسات -->
+      <div class="section-header">
+        <div class="section-icon">👗</div>
+        <div>
+          <h2 class="section-title">6. إدارة الفساتين ومتابعة طلبات القياسات الـ 13</h2>
+        </div>
+      </div>
+      <p class="section-desc">متابعة دقيقة لعمليات المشغل من إضافة الفساتين وتحديد الأسعار والأقمشة إلى طباعة كروت الإنتاج.</p>
+
+      <div class="grid-2">
+        <div class="card card-gold">
+          <div class="card-title"><span>👗</span> إضافة فستان جديد للكاتالوج</div>
+          <ul style="font-size: 11px; color: #334155; line-height: 1.7; padding-right: 16px;">
+            <li>اضغط على <strong>«➕ إضافة فستان جديد»</strong> في تبويب الفساتين.</li>
+            <li>حدد اسم الموديل، السعر بالريال، والقسم المناسب من القائمة.</li>
+            <li>اكتب الوصف ونوع القماش المعتمد ومدة التفصيل بالأيام.</li>
+            <li><strong>رفع الصور</strong>: اسحب الصور من جهازك مباشرة إلى صندوق الرفع. الصورة الأولى تكون الغلاف الرئيسي للبطاقة.</li>
+            <li>ضع علامة على <strong>«عرض مميز في الصفحة الأولى»</strong> لرفع مبيعات الموديل.</li>
+          </ul>
+        </div>
+
+        <div class="card card-purple">
+          <div class="card-title"><span>🖨️</span> طباعة كرت المشغل (Workshop Job Card)</div>
+          <p style="font-size: 11px; color: #334155; margin-bottom: 6px;">
+            في تبويب <strong>«📐 طلبات القياس والتفصيل»</strong>، تجد زر <strong>«طباعة كرت المشغل»</strong> أمام كل طلب:
+          </p>
+          <div style="background: #faf5ff; border: 1px dashed #7c3aed; border-radius: 6px; padding: 8px; font-size: 10.5px; color: #581c87;">
+            <strong>محتويات كرت المشغل المطبوع:</strong>
+            <p style="margin-top: 3px;">
+              اسم الزبونة، رقم الهاتف، اسم الفستان المطلوب، تاريخ التسليم، ورسمة الجسم التوضيحية مع الـ 13 قياساً مرقمة ومفصلة بالسنتيمتر (محيط الصدر، الخصر، الورك، طول الصدر، طول الظهر، الكتف، الكم، الإبط، والطول الكلي)، لتسليمها لغرفة القص دون أي لبس أو خطأ يدوي.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- القسم 7: التخزين وقواعد البيانات -->
+      <div class="section-header" style="margin-top: 14px;">
+        <div class="section-icon">💾</div>
+        <div>
+          <h2 class="section-title">7. خيارات قواعد البيانات والنسخ الاحتياطي</h2>
+        </div>
+      </div>
+      <p class="section-desc">مرونة كاملة بين التخزين المحلي السريع والآمن بنسبة 100% والربط السحابي مع Firebase.</p>
+
+      <div class="grid-2">
+        <div class="card card-emerald">
+          <div class="card-title"><span>🟢</span> الوضع المحلي الآمن (Safe Local DB) — الموصى به</div>
+          <ul style="font-size: 11px; color: #065f46; line-height: 1.7; padding-right: 16px;">
+            <li><strong>أقصى درجات الاستقرار والسرعة</strong>: يعمل بنسبة 100% داخل المتصفح بتقنيات IndexedDB الحديثة.</li>
+            <li><strong>بدون أي أخطاء اتصال سحابية</strong>: لا يتطلب انتظار خوادم خارجية، ويحفظ الصور الكبيرة فوراً.</li>
+            <li><strong>زر التفعيل السريع</strong>: في تبويب الإعدادات يوجد زر <em>«الاعتماد على التخزين المحلي فقط 🟡»</em> للتحويل للوضع المحلي بضغطة واحدة وتصفير أي مفاتيح خارجية عالقة.</li>
+          </ul>
+        </div>
+
+        <div class="card card-blue">
+          <div class="card-title"><span>📥</span> النسخ الاحتياطي الفوري (JSON Backup)</div>
+          <p style="font-size: 11px; color: #0369a1; margin-bottom: 6px;">
+            لضمان سلامة بيانات المتجر والفساتين والتصنيفات في كافة الظروف:
+          </p>
+          <ul style="font-size: 11px; color: #334155; line-height: 1.7; padding-right: 16px;">
+            <li><strong>تصدير نسخة احتياطية</strong>: اضغط <em>«تصدير نسخة احتياطية (JSON)»</em> لتنزيل ملف يحتوي كامل الكاتالوج والإعدادات على حاسوبك.</li>
+            <li><strong>استعادة النسخة الاحتياطية</strong>: اضغط <em>«استعادة من نسخة احتياطية»</em> لاختيار الملف وإرجاع كافة المنتجات والتصنيفات في ثوانٍ.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>ريلاس كوتور للأزياء الراقية | Relas Haute Couture 2026</span>
+      <span>الصفحة 4 من 4</span>
+    </div>
+  </div>
+
+</body>
+</html>
